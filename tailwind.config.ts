@@ -61,16 +61,6 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				},
-				// Готовск color palette
-				heritage: {
-					brown: '#8B4513',
-					'golden-rod': '#DAA520',
-					dark: '#DA454F',
-					'slate-gray': '#708090',
-					navy: '#2F4F4F',
-					beige: '#F5F5DC',
-					cream: '#FFFFF0'
 				}
 			},
 			borderRadius: {
