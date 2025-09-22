@@ -5,7 +5,6 @@ export const sections = [
   { id: 'news', label: 'Новости' },
   { id: 'attractions', label: 'Достопримечательности' },
   { id: 'history', label: 'История' },
-  { id: 'mayor', label: 'Мэр города' },
   { id: 'map', label: 'Карта' }
 ]
 

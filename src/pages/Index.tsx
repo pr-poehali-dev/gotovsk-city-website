@@ -6,7 +6,7 @@ import { AttractionsSection } from '@/components/gotovsk/AttractionsSection'
 import { TransportSection } from '@/components/gotovsk/TransportSection'
 import { HistorySection } from '@/components/gotovsk/HistorySection'
 import { NewsSection } from '@/components/gotovsk/NewsSection'
-import { MayorSection } from '@/components/gotovsk/MayorSection'
+
 import { MapSection } from '@/components/gotovsk/MapSection'
 
 function Index() {
@@ -26,8 +26,7 @@ function Index() {
         return <HistorySection />
       case 'news':
         return <NewsSection />
-      case 'mayor':
-        return <MayorSection />
+
       case 'map':
         return <MapSection />
       default:
