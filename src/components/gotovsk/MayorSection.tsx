@@ -13,8 +13,17 @@ export function MayorSection() {
         </p>
       </div>
 
-      <Card className="border-heritage-brown/20 bg-gradient-to-br from-heritage-beige to-heritage-cream">
-        <CardContent className="p-8">
+      <Card className="border-heritage-brown/20 bg-gradient-to-br from-blue-600 to-blue-800 relative overflow-hidden">
+        <CardContent className="p-8 relative z-10">
+          {/* Очки на заднем фоне */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-4 left-8 text-6xl">👓</div>
+            <div className="absolute top-16 right-12 text-4xl">👓</div>
+            <div className="absolute bottom-8 left-16 text-5xl">👓</div>
+            <div className="absolute bottom-12 right-8 text-3xl">👓</div>
+            <div className="absolute top-1/2 left-1/3 text-7xl">👓</div>
+            <div className="absolute top-1/4 right-1/4 text-4xl">👓</div>
+          </div>
           <div className="grid md:grid-cols-3 gap-8 items-center">
             <div className="md:col-span-1">
               <div className="relative">
@@ -29,16 +38,16 @@ export function MayorSection() {
             
             <div className="md:col-span-2 space-y-6">
               <div>
-                <h3 className="text-3xl font-bold text-heritage-brown mb-2">Алексей Викторович Готовский</h3>
-                <p className="text-xl text-heritage-dark mb-4">Мэр города Готовск</p>
+                <h3 className="text-3xl font-bold text-white mb-2">Алексей Викторович Готовский</h3>
+                <p className="text-xl text-blue-100 mb-4">Мэр города Готовск</p>
                 <div className="flex flex-wrap gap-2 mb-6">
-                  <Badge variant="secondary" className="bg-heritage-golden-rod/20 text-heritage-brown">
+                  <Badge variant="secondary" className="bg-white/20 text-white">
                     В должности с 2020 года
                   </Badge>
-                  <Badge variant="secondary" className="bg-heritage-golden-rod/20 text-heritage-brown">
+                  <Badge variant="secondary" className="bg-white/20 text-white">
                     Экономист
                   </Badge>
-                  <Badge variant="secondary" className="bg-heritage-golden-rod/20 text-heritage-brown">
+                  <Badge variant="secondary" className="bg-white/20 text-white">
                     Почетный житель
                   </Badge>
                 </div>
@@ -46,30 +55,30 @@ export function MayorSection() {
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-lg font-semibold text-heritage-brown mb-2">Образование</h4>
-                  <p className="text-heritage-dark">
+                  <h4 className="text-lg font-semibold text-white mb-2">Образование</h4>
+                  <p className="text-blue-100">
                     Московский государственный университет экономики, статистики и информатики. 
                     Кандидат экономических наук.
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="text-lg font-semibold text-heritage-brown mb-2">Достижения</h4>
-                  <ul className="space-y-2 text-heritage-dark">
+                  <h4 className="text-lg font-semibold text-white mb-2">Достижения</h4>
+                  <ul className="space-y-2 text-blue-100">
                     <li className="flex items-start gap-2">
-                      <Icon name="CheckCircle" className="text-heritage-golden-rod mt-1 shrink-0" size={16} />
+                      <Icon name="CheckCircle" className="text-yellow-300 mt-1 shrink-0" size={16} />
                       <span>Модернизация транспортной инфраструктуры города</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Icon name="CheckCircle" className="text-heritage-golden-rod mt-1 shrink-0" size={16} />
+                      <Icon name="CheckCircle" className="text-yellow-300 mt-1 shrink-0" size={16} />
                       <span>Создание 7 современных микрорайонов</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Icon name="CheckCircle" className="text-heritage-golden-rod mt-1 shrink-0" size={16} />
+                      <Icon name="CheckCircle" className="text-yellow-300 mt-1 shrink-0" size={16} />
                       <span>Развитие экологических зон и парковых территорий</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Icon name="CheckCircle" className="text-heritage-golden-rod mt-1 shrink-0" size={16} />
+                      <Icon name="CheckCircle" className="text-yellow-300 mt-1 shrink-0" size={16} />
                       <span>Строительство велосипедной инфраструктуры</span>
                     </li>
                   </ul>
