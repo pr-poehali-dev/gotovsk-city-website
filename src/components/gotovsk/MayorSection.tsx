@@ -7,13 +7,13 @@ export function MayorSection() {
   return (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <h2 className="text-4xl font-bold text-heritage-brown mb-4">Мэр города</h2>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+        <h2 className="text-4xl font-bold chrome-text mb-4">Мэр города</h2>
+        <p className="text-xl text-slate-300 max-w-2xl mx-auto">
           Руководство города Готовск
         </p>
       </div>
 
-      <Card className="border-heritage-brown/20 bg-gradient-to-br from-blue-600 to-blue-800 relative overflow-hidden">
+      <Card className="chrome-card relative overflow-hidden chrome-reflection">
         <CardContent className="p-8 relative z-10">
           {/* Очки на заднем фоне */}
           <div className="absolute inset-0 opacity-10">

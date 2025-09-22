@@ -62,15 +62,16 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Готовск color palette
-				heritage: {
-					brown: '#8B4513',
-					'golden-rod': '#DAA520',
-					dark: '#DA454F',
-					'slate-gray': '#708090',
-					navy: '#2F4F4F',
-					beige: '#F5F5DC',
-					cream: '#FFFFF0'
+				// Liquid Chrome color palette
+				chrome: {
+					silver: '#C0C0C0',
+					'dark-silver': '#A8A8A8',
+					platinum: '#E5E4E2',
+					'metallic-blue': '#4A90E2',
+					'metallic-purple': '#8A2BE2',
+					'chrome-gray': '#6B7280',
+					'liquid-black': '#1F2937',
+					'pearl-white': '#F8FAFC'
 				}
 			},
 			borderRadius: {
