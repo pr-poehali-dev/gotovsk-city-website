@@ -1,0 +1,200 @@
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import Icon from '@/components/ui/icon'
+import { gifts } from './data'
+
+export function GiftsSection() {
+  const [lizcoins, setLizcoins] = useState(() => {
+    return parseInt(localStorage.getItem('lizcoins') || '0')
+  })
+  
+  const [lastVisit, setLastVisit] = useState(() => {
+    return localStorage.getItem('lastVisit') || ''
+  })
+  
+  const [purchasedGifts, setPurchasedGifts] = useState(() => {
+    const saved = localStorage.getItem('purchasedGifts')
+    return saved ? JSON.parse(saved) : []
+  })
+  
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const today = new Date().toDateString()
+    
+    if (lastVisit !== today) {
+      const newLizcoins = lizcoins + 10
+      setLizcoins(newLizcoins)
+      setLastVisit(today)
+      setMessage('Вы получили 10 лизкоинов за ежедневное посещение!')
+      
+      localStorage.setItem('lizcoins', newLizcoins.toString())
+      localStorage.setItem('lastVisit', today)
+      
+      setTimeout(() => setMessage(''), 5000)
+    }
+  }, [])
+
+  const handlePurchase = (gift: typeof gifts[0]) => {
+    if (lizcoins < gift.price) {
+      setMessage('Недостаточно лизкоинов для покупки!')
+      setTimeout(() => setMessage(''), 3000)
+      return
+    }
+
+    if (gift.limited) {
+      const purchaseCount = purchasedGifts.filter((id: string) => id === gift.id).length
+      if (purchaseCount >= (gift.total || 1)) {
+        setMessage('Этот подарок уже недоступен!')
+        setTimeout(() => setMessage(''), 3000)
+        return
+      }
+    }
+
+    const newLizcoins = lizcoins - gift.price
+    const newPurchasedGifts = [...purchasedGifts, gift.id]
+    
+    setLizcoins(newLizcoins)
+    setPurchasedGifts(newPurchasedGifts)
+    setMessage(`Вы успешно приобрели: ${gift.name}!`)
+    
+    localStorage.setItem('lizcoins', newLizcoins.toString())
+    localStorage.setItem('purchasedGifts', JSON.stringify(newPurchasedGifts))
+    
+    setTimeout(() => setMessage(''), 5000)
+  }
+
+  const getGiftStatus = (gift: typeof gifts[0]) => {
+    if (gift.limited) {
+      const purchaseCount = purchasedGifts.filter((id: string) => id === gift.id).length
+      const remaining = (gift.total || 1) - purchaseCount
+      return { canPurchase: remaining > 0, remaining }
+    }
+    return { canPurchase: true, remaining: null }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-heritage-brown mb-2">Подарки за лизкоины</h1>
+          <p className="text-muted-foreground">Обменивайте лизкоины на эксклюзивные подарки города</p>
+        </div>
+        
+        <Card className="border-heritage-brown/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                <Icon name="Coins" className="text-white" size={24} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Ваш баланс</p>
+                <p className="text-2xl font-bold text-heritage-brown">{lizcoins} ЛК</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {message && (
+        <Alert className="border-heritage-brown/20">
+          <Icon name="Info" size={16} />
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
+      )}
+
+      <Card className="border-heritage-brown/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-heritage-brown">
+            <Icon name="Gift" size={20} />
+            Как получить лизкоины
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3 p-3 bg-heritage-beige/30 rounded-lg">
+              <Icon name="Calendar" className="text-heritage-brown" size={20} />
+              <div>
+                <p className="font-medium">Ежедневный вход</p>
+                <p className="text-sm text-muted-foreground">+10 лизкоинов каждый день</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 bg-heritage-beige/30 rounded-lg">
+              <Icon name="Trophy" className="text-heritage-brown" size={20} />
+              <div>
+                <p className="font-medium">Участие в мероприятиях</p>
+                <p className="text-sm text-muted-foreground">Дополнительные лизкоины</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
+        {gifts.map((gift) => {
+          const status = getGiftStatus(gift)
+          const canAfford = lizcoins >= gift.price
+          const canPurchase = status.canPurchase && canAfford
+          
+          return (
+            <Card key={gift.id} className={`border-heritage-brown/20 transition-all hover:shadow-lg ${
+              !canPurchase ? 'opacity-60' : ''
+            }`}>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-heritage-brown/10 rounded-lg flex items-center justify-center">
+                      <Icon name={gift.icon as any} className="text-heritage-brown" size={24} />
+                    </div>
+                    <div>
+                      <CardTitle className="text-heritage-brown">{gift.name}</CardTitle>
+                      {gift.limited && (
+                        <Badge variant="secondary" className="mt-1">
+                          Лимитированный: осталось {status.remaining}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="text-right">
+                    <div className="flex items-center gap-1">
+                      <Icon name="Coins" className="text-yellow-600" size={16} />
+                      <span className="font-bold text-heritage-brown">{gift.price}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground leading-relaxed">
+                  {gift.description}
+                </p>
+                
+                <Button
+                  onClick={() => handlePurchase(gift)}
+                  disabled={!canPurchase}
+                  className={`w-full ${
+                    canPurchase 
+                      ? 'bg-heritage-brown hover:bg-heritage-brown/90 text-white'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  {!canAfford 
+                    ? `Недостаточно лизкоинов (нужно ${gift.price - lizcoins} ЛК)`
+                    : !status.canPurchase 
+                      ? 'Недоступно'
+                      : 'Получить подарок'
+                  }
+                </Button>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

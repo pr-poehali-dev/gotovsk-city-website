@@ -5,6 +5,7 @@ export const sections = [
   { id: 'news', label: 'Новости' },
   { id: 'attractions', label: 'Достопримечательности' },
   { id: 'history', label: 'История' },
+  { id: 'gifts', label: 'Подарки за лизкоины' },
   { id: 'map', label: 'Карта' }
 ]
 
@@ -79,5 +80,43 @@ export const streets = [
     name: 'Субкунтрульная улица',
     length: '4 км',
     description: 'Современная магистраль с бизнес-центрами'
+  }
+]
+
+export const gifts = [
+  {
+    id: 'calendar',
+    name: 'Календарь Готовска',
+    price: 250,
+    description: 'Официальный городской календарь с красивыми видами Готовска',
+    icon: 'Calendar',
+    available: true
+  },
+  {
+    id: 'mayor-meeting',
+    name: 'Встреча с мэром Готовска',
+    price: 150,
+    description: 'Персональная встреча с главой города в мэрии',
+    icon: 'Users',
+    available: true
+  },
+  {
+    id: 'bank-card',
+    name: 'Банковская карта Готовска',
+    price: 500,
+    description: 'Эксклюзивная банковская карта с символикой города',
+    icon: 'CreditCard',
+    available: true
+  },
+  {
+    id: 'passport',
+    name: 'Паспорт Готовска',
+    price: 1000,
+    description: 'Лимитированный паспорт почетного гражданина города',
+    icon: 'BookOpen',
+    available: true,
+    limited: true,
+    remaining: 5,
+    total: 5
   }
 ]

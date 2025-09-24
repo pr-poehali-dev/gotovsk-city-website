@@ -8,6 +8,7 @@ import { HistorySection } from '@/components/gotovsk/HistorySection'
 import { NewsSection } from '@/components/gotovsk/NewsSection'
 
 import { MapSection } from '@/components/gotovsk/MapSection'
+import { GiftsSection } from '@/components/gotovsk/GiftsSection'
 
 function Index() {
   const [activeSection, setActiveSection] = useState('main')
@@ -27,6 +28,8 @@ function Index() {
       case 'news':
         return <NewsSection />
 
+      case 'gifts':
+        return <GiftsSection />
       case 'map':
         return <MapSection />
       default:
