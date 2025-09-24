@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Layout } from '@/components/gotovsk/Layout'
+import { trackSectionVisit } from '@/utils/lizcoins'
 import { MainSection } from '@/components/gotovsk/MainSection'
 import { DistrictsSection } from '@/components/gotovsk/DistrictsSection'
 import { AttractionsSection } from '@/components/gotovsk/AttractionsSection'
@@ -12,6 +13,17 @@ import { GiftsSection } from '@/components/gotovsk/GiftsSection'
 
 function Index() {
   const [activeSection, setActiveSection] = useState('main')
+  const [earnedMessage, setEarnedMessage] = useState('')
+
+  useEffect(() => {
+    if (activeSection !== 'main' && activeSection !== 'gifts') {
+      const earned = trackSectionVisit(activeSection)
+      if (earned) {
+        setEarnedMessage('Вы получили 5 лизкоинов за посещение раздела!')
+        setTimeout(() => setEarnedMessage(''), 3000)
+      }
+    }
+  }, [activeSection])
 
   const renderContent = () => {
     switch (activeSection) {

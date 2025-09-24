@@ -1,16 +1,35 @@
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import Icon from '@/components/ui/icon'
 import { sections } from './data'
+import { getLizcoins } from '@/utils/lizcoins'
 
 interface LayoutProps {
   children: React.ReactNode
   activeSection: string
   onSectionChange: (section: string) => void
+  earnedMessage?: string
 }
 
-export function Layout({ children, activeSection, onSectionChange }: LayoutProps) {
+export function Layout({ children, activeSection, onSectionChange, earnedMessage }: LayoutProps) {
+  const [lizcoins, setLizcoins] = useState(0)
+  const [showEarned, setShowEarned] = useState('')
+
+  useEffect(() => {
+    setLizcoins(getLizcoins())
+    
+    const handleLizcoinsEarned = (event: any) => {
+      setLizcoins(event.detail.newTotal)
+      setShowEarned(`+${event.detail.amount} ЛК за ${event.detail.reason}`)
+      setTimeout(() => setShowEarned(''), 3000)
+    }
+    
+    window.addEventListener('lizcoins-earned', handleLizcoinsEarned)
+    return () => window.removeEventListener('lizcoins-earned', handleLizcoinsEarned)
+  }, [])
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -26,10 +45,26 @@ export function Layout({ children, activeSection, onSectionChange }: LayoutProps
                 <p className="text-sm text-muted-foreground">Официальный портал города</p>
               </div>
             </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-200">
+                <Icon name="Coins" className="text-yellow-600" size={20} />
+                <span className="font-bold text-heritage-brown">{lizcoins} ЛК</span>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
+      {showEarned && (
+        <div className="container mx-auto px-4 pt-4">
+          <Alert className="border-green-200 bg-green-50">
+            <Icon name="Coins" size={16} className="text-green-600" />
+            <AlertDescription className="text-green-800">{showEarned}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Navigation */}

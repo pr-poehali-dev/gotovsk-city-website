@@ -114,20 +114,28 @@ export function GiftsSection() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
             <div className="flex items-center gap-3 p-3 bg-heritage-beige/30 rounded-lg">
               <Icon name="Calendar" className="text-heritage-brown" size={20} />
               <div>
                 <p className="font-medium">Ежедневный вход</p>
-                <p className="text-sm text-muted-foreground">+10 лизкоинов каждый день</p>
+                <p className="text-sm text-muted-foreground">+10 лизкоинов</p>
               </div>
             </div>
             
             <div className="flex items-center gap-3 p-3 bg-heritage-beige/30 rounded-lg">
+              <Icon name="Eye" className="text-heritage-brown" size={20} />
+              <div>
+                <p className="font-medium">Посещение разделов</p>
+                <p className="text-sm text-muted-foreground">+5 лизкоинов в день</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-heritage-beige/30 rounded-lg">
               <Icon name="Trophy" className="text-heritage-brown" size={20} />
               <div>
-                <p className="font-medium">Участие в мероприятиях</p>
-                <p className="text-sm text-muted-foreground">Дополнительные лизкоины</p>
+                <p className="font-medium">Мероприятия</p>
+                <p className="text-sm text-muted-foreground">Бонусы за активность</p>
               </div>
             </div>
           </div>
