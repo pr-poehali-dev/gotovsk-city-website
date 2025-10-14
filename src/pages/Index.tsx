@@ -11,6 +11,7 @@ import { MapSection } from '@/components/gotovsk/MapSection'
 import { GiftsSection } from '@/components/gotovsk/GiftsSection'
 import { ProfileSection } from '@/components/gotovsk/ProfileSection'
 import { LeaderboardSection } from '@/components/gotovsk/LeaderboardSection'
+import { AdminPanel } from '@/components/gotovsk/AdminPanel'
 import { getCurrentUser } from '@/utils/auth'
 
 function Index() {
@@ -19,7 +20,7 @@ function Index() {
 
   useEffect(() => {
     const user = getCurrentUser()
-    if (user && activeSection !== 'main' && activeSection !== 'gifts' && activeSection !== 'leaderboard') {
+    if (user && activeSection !== 'main' && activeSection !== 'gifts' && activeSection !== 'leaderboard' && activeSection !== 'admin') {
       const earned = trackSectionVisit(activeSection)
       if (earned) {
         setEarnedMessage('Вы получили 5 лизкоинов за посещение раздела!')
@@ -47,6 +48,8 @@ function Index() {
         return <GiftsSection />
       case 'leaderboard':
         return <LeaderboardSection />
+      case 'admin':
+        return <AdminPanel />
       case 'map':
         return <MapSection />
       case 'profile':

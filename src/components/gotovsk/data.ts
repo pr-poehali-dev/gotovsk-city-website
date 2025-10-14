@@ -8,7 +8,8 @@ export const sections = [
   { id: 'gifts', label: 'Подарки за лизкоины' },
   { id: 'leaderboard', label: 'Таблица лидеров' },
   { id: 'map', label: 'Карта' },
-  { id: 'profile', label: 'Профиль' }
+  { id: 'profile', label: 'Профиль' },
+  { id: 'admin', label: 'Админ-панель' }
 ]
 
 export const districts = [

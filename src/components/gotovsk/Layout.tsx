@@ -111,20 +111,25 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
               </CardHeader>
               <CardContent className="p-3">
                 <nav className="space-y-2">
-                  {sections.map((section) => (
-                    <Button
-                      key={section.id}
-                      variant={activeSection === section.id ? "default" : "ghost"}
-                      className={`w-full justify-start ${
-                        activeSection === section.id 
-                          ? 'bg-heritage-brown hover:bg-heritage-brown/90 text-white' 
-                          : 'text-heritage-brown hover:bg-heritage-beige'
-                      }`}
-                      onClick={() => onSectionChange(section.id)}
-                    >
-                      {section.label}
-                    </Button>
-                  ))}
+                  {sections.map((section) => {
+                    if (section.id === 'admin' && (!user || user.username !== 'Админ')) {
+                      return null
+                    }
+                    return (
+                      <Button
+                        key={section.id}
+                        variant={activeSection === section.id ? "default" : "ghost"}
+                        className={`w-full justify-start ${
+                          activeSection === section.id 
+                            ? 'bg-heritage-brown hover:bg-heritage-brown/90 text-white' 
+                            : 'text-heritage-brown hover:bg-heritage-beige'
+                        }`}
+                        onClick={() => onSectionChange(section.id)}
+                      >
+                        {section.label}
+                      </Button>
+                    )
+                  })}
                 </nav>
               </CardContent>
             </Card>

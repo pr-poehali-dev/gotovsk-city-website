@@ -22,6 +22,10 @@ export function GiftsSection() {
   })
   
   const [message, setMessage] = useState('')
+  const [customGifts, setCustomGifts] = useState(() => {
+    const saved = localStorage.getItem('customGifts')
+    return saved ? JSON.parse(saved) : []
+  })
 
   useEffect(() => {
     const currentUser = getCurrentUser()
@@ -34,8 +38,17 @@ export function GiftsSection() {
       setLizcoins(updatedUser?.lizcoins || 0)
     }
     
+    const handleCustomGiftsChange = () => {
+      const saved = localStorage.getItem('customGifts')
+      setCustomGifts(saved ? JSON.parse(saved) : [])
+    }
+    
     window.addEventListener('auth-change', handleAuthChange)
-    return () => window.removeEventListener('auth-change', handleAuthChange)
+    window.addEventListener('storage', handleCustomGiftsChange)
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange)
+      window.removeEventListener('storage', handleCustomGiftsChange)
+    }
   }, [])
 
   useEffect(() => {
@@ -196,7 +209,7 @@ export function GiftsSection() {
       </Card>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {gifts.map((gift) => {
+        {[...gifts, ...customGifts].map((gift) => {
           const status = getGiftStatus(gift)
           const canAfford = lizcoins >= gift.price
           const canPurchase = status.canPurchase && canAfford
