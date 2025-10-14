@@ -10,13 +10,16 @@ import { NewsSection } from '@/components/gotovsk/NewsSection'
 import { MapSection } from '@/components/gotovsk/MapSection'
 import { GiftsSection } from '@/components/gotovsk/GiftsSection'
 import { ProfileSection } from '@/components/gotovsk/ProfileSection'
+import { LeaderboardSection } from '@/components/gotovsk/LeaderboardSection'
+import { getCurrentUser } from '@/utils/auth'
 
 function Index() {
   const [activeSection, setActiveSection] = useState('main')
   const [earnedMessage, setEarnedMessage] = useState('')
 
   useEffect(() => {
-    if (activeSection !== 'main' && activeSection !== 'gifts') {
+    const user = getCurrentUser()
+    if (user && activeSection !== 'main' && activeSection !== 'gifts' && activeSection !== 'leaderboard') {
       const earned = trackSectionVisit(activeSection)
       if (earned) {
         setEarnedMessage('Вы получили 5 лизкоинов за посещение раздела!')
@@ -42,6 +45,8 @@ function Index() {
 
       case 'gifts':
         return <GiftsSection />
+      case 'leaderboard':
+        return <LeaderboardSection />
       case 'map':
         return <MapSection />
       case 'profile':

@@ -6,6 +6,7 @@ export const sections = [
   { id: 'attractions', label: 'Достопримечательности' },
   { id: 'history', label: 'История' },
   { id: 'gifts', label: 'Подарки за лизкоины' },
+  { id: 'leaderboard', label: 'Таблица лидеров' },
   { id: 'map', label: 'Карта' },
   { id: 'profile', label: 'Профиль' }
 ]

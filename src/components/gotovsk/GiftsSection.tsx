@@ -9,7 +9,8 @@ import { getCurrentUser, updateUserLizcoins } from '@/utils/auth'
 import { getLizcoins } from '@/utils/lizcoins'
 
 export function GiftsSection() {
-  const [lizcoins, setLizcoins] = useState(() => getLizcoins())
+  const [user, setUser] = useState(getCurrentUser())
+  const [lizcoins, setLizcoins] = useState(() => user?.lizcoins || 0)
   
   const [lastVisit, setLastVisit] = useState(() => {
     return localStorage.getItem('lastVisit') || ''
@@ -23,8 +24,24 @@ export function GiftsSection() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    const currentUser = getCurrentUser()
+    setUser(currentUser)
+    setLizcoins(currentUser?.lizcoins || 0)
+    
+    const handleAuthChange = () => {
+      const updatedUser = getCurrentUser()
+      setUser(updatedUser)
+      setLizcoins(updatedUser?.lizcoins || 0)
+    }
+    
+    window.addEventListener('auth-change', handleAuthChange)
+    return () => window.removeEventListener('auth-change', handleAuthChange)
+  }, [])
+
+  useEffect(() => {
+    if (!user) return
+    
     const today = new Date().toDateString()
-    const user = getCurrentUser()
     
     if (lastVisit !== today) {
       const newLizcoins = lizcoins + 10
@@ -32,19 +49,20 @@ export function GiftsSection() {
       setLastVisit(today)
       setMessage('Вы получили 10 лизкоинов за ежедневное посещение!')
       
-      if (user) {
-        updateUserLizcoins(newLizcoins)
-      } else {
-        localStorage.setItem('lizcoins', newLizcoins.toString())
-      }
-      
+      updateUserLizcoins(newLizcoins)
       localStorage.setItem('lastVisit', today)
       
       setTimeout(() => setMessage(''), 5000)
     }
-  }, [])
+  }, [user])
 
   const handlePurchase = (gift: typeof gifts[0]) => {
+    if (!user) {
+      setMessage('Войдите в аккаунт, чтобы покупать подарки!')
+      setTimeout(() => setMessage(''), 3000)
+      return
+    }
+
     if (lizcoins < gift.price) {
       setMessage('Недостаточно лизкоинов для покупки!')
       setTimeout(() => setMessage(''), 3000)
@@ -62,15 +80,10 @@ export function GiftsSection() {
 
     const newLizcoins = lizcoins - gift.price
     const newPurchasedGifts = [...purchasedGifts, gift.id]
-    const user = getCurrentUser()
     
     setLizcoins(newLizcoins)
+    updateUserLizcoins(newLizcoins)
     
-    if (user) {
-      updateUserLizcoins(newLizcoins)
-    } else {
-      localStorage.setItem('lizcoins', newLizcoins.toString())
-    }
     setPurchasedGifts(newPurchasedGifts)
     setMessage(`Вы успешно приобрели: ${gift.name}!`)
     
@@ -86,6 +99,34 @@ export function GiftsSection() {
       return { canPurchase: remaining > 0, remaining }
     }
     return { canPurchase: true, remaining: null }
+  }
+
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <Alert className="border-blue-200 bg-blue-50">
+          <Icon name="Info" size={16} className="text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            Войдите в аккаунт, чтобы получать лизкоины и покупать подарки!
+          </AlertDescription>
+        </Alert>
+        
+        <Card className="border-heritage-brown/20">
+          <CardHeader>
+            <CardTitle className="text-heritage-brown flex items-center gap-2">
+              <Icon name="Gift" size={24} />
+              Подарки за лизкоины
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12 text-muted-foreground">
+              <Icon name="Lock" size={48} className="mx-auto mb-4 opacity-30" />
+              <p>Войдите в аккаунт, чтобы увидеть подарки</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

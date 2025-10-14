@@ -25,13 +25,13 @@ export const register = (username: string, email: string, password: string): boo
   localStorage.setItem('users', JSON.stringify(users))
   localStorage.setItem('user_' + newUser.id, password)
   
-  login(email, password)
+  login(username, password)
   return true
 }
 
-export const login = (email: string, password: string): boolean => {
+export const login = (usernameOrEmail: string, password: string): boolean => {
   const users = JSON.parse(localStorage.getItem('users') || '[]')
-  const user = users.find((u: User) => u.email === email)
+  const user = users.find((u: User) => u.email === usernameOrEmail || u.username === usernameOrEmail)
   
   if (!user) return false
   

@@ -12,21 +12,15 @@ export const addLizcoins = (amount: number, reason: string) => {
     }))
     
     return newLizcoins
-  } else {
-    const currentLizcoins = parseInt(localStorage.getItem('lizcoins') || '0')
-    const newLizcoins = currentLizcoins + amount
-    
-    localStorage.setItem('lizcoins', newLizcoins.toString())
-    
-    window.dispatchEvent(new CustomEvent('lizcoins-earned', { 
-      detail: { amount, reason, newTotal: newLizcoins }
-    }))
-    
-    return newLizcoins
   }
+  
+  return 0
 }
 
 export const trackSectionVisit = (sectionId: string, reward: number = 5) => {
+  const user = getCurrentUser()
+  if (!user) return false
+  
   const visitKey = `section-visit-${sectionId}`
   const today = new Date().toDateString()
   const lastVisit = localStorage.getItem(visitKey)

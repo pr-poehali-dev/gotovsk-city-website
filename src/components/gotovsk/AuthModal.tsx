@@ -26,8 +26,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setSuccess('')
 
     if (mode === 'register') {
-      if (!username || !email || !password) {
-        setError('Заполните все поля')
+      if (!username || !password) {
+        setError('Заполните имя и пароль')
         return
       }
       
@@ -36,7 +36,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         return
       }
 
-      const result = register(username, email, password)
+      const result = register(username, email || `user_${Date.now()}@gotovsk.local`, password)
       if (result) {
         setSuccess('Регистрация успешна! +50 стартовых лизкоинов')
         setTimeout(() => {
@@ -44,15 +44,15 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           window.location.reload()
         }, 1500)
       } else {
-        setError('Пользователь с таким email уже существует')
+        setError('Ошибка регистрации')
       }
     } else {
-      if (!email || !password) {
-        setError('Заполните все поля')
+      if (!username || !password) {
+        setError('Заполните имя и пароль')
         return
       }
 
-      const result = login(email, password)
+      const result = login(username, password)
       if (result) {
         setSuccess('Вход выполнен успешно!')
         setTimeout(() => {
@@ -60,7 +60,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           window.location.reload()
         }, 1000)
       } else {
-        setError('Неверный email или пароль')
+        setError('Неверное имя или пароль')
       }
     }
   }
@@ -93,16 +93,18 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ivan@example.com"
-            />
-          </div>
+          {mode === 'register' && (
+            <div className="space-y-2">
+              <Label htmlFor="email">Email (необязательно)</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ivan@example.com"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="password">Пароль</Label>
