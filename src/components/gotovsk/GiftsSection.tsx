@@ -97,6 +97,19 @@ export function GiftsSection() {
     setLizcoins(newLizcoins)
     updateUserLizcoins(newLizcoins)
     
+    const transaction = {
+      userId: user.id,
+      username: user.username,
+      amount: -gift.price,
+      reason: `Покупка: ${gift.name}`,
+      timestamp: new Date().toISOString(),
+      balanceAfter: newLizcoins
+    }
+    
+    const allTransactions = JSON.parse(localStorage.getItem('lizcoinsTransactions') || '[]')
+    allTransactions.push(transaction)
+    localStorage.setItem('lizcoinsTransactions', JSON.stringify(allTransactions))
+    
     setPurchasedGifts(newPurchasedGifts)
     setMessage(`Вы успешно приобрели: ${gift.name}!`)
     

@@ -14,6 +14,8 @@ interface User {
   id: string
   username: string
   lizcoins: number
+  email?: string
+  createdAt: string
 }
 
 interface Gift {
@@ -28,6 +30,24 @@ interface Gift {
   total?: number
 }
 
+interface Purchase {
+  userId: string
+  username: string
+  giftId: string
+  giftName: string
+  price: number
+  timestamp: string
+}
+
+interface Transaction {
+  userId: string
+  username: string
+  amount: number
+  reason: string
+  timestamp: string
+  balanceAfter: number
+}
+
 export function AdminPanel() {
   const [currentUser, setCurrentUser] = useState(getCurrentUser())
   const [users, setUsers] = useState<User[]>([])
@@ -40,10 +60,15 @@ export function AdminPanel() {
   const [newGiftPrice, setNewGiftPrice] = useState('')
   const [newGiftDescription, setNewGiftDescription] = useState('')
   const [newGiftIcon, setNewGiftIcon] = useState('Gift')
+  const [activeTab, setActiveTab] = useState<'manage' | 'purchases' | 'transactions'>('manage')
+  const [purchases, setPurchases] = useState<Purchase[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
 
   useEffect(() => {
     loadUsers()
     loadCustomGifts()
+    loadPurchases()
+    loadTransactions()
   }, [])
 
   const loadUsers = () => {
@@ -54,6 +79,33 @@ export function AdminPanel() {
   const loadCustomGifts = () => {
     const saved = localStorage.getItem('customGifts')
     setCustomGifts(saved ? JSON.parse(saved) : [])
+  }
+
+  const loadPurchases = () => {
+    const allUsers = JSON.parse(localStorage.getItem('users') || '[]')
+    const purchasedGifts = JSON.parse(localStorage.getItem('purchasedGifts') || '[]')
+    const allGifts = [...gifts, ...JSON.parse(localStorage.getItem('customGifts') || '[]')]
+    
+    const purchaseHistory: Purchase[] = purchasedGifts.map((giftId: string) => {
+      const gift = allGifts.find(g => g.id === giftId)
+      return {
+        userId: 'unknown',
+        username: 'Неизвестный',
+        giftId: giftId,
+        giftName: gift?.name || giftId,
+        price: gift?.price || 0,
+        timestamp: new Date().toISOString()
+      }
+    })
+    
+    setPurchases(purchaseHistory.reverse())
+  }
+
+  const loadTransactions = () => {
+    const saved = localStorage.getItem('lizcoinsTransactions')
+    if (saved) {
+      setTransactions(JSON.parse(saved).reverse())
+    }
   }
 
   const saveCustomGifts = (gifts: Gift[]) => {
@@ -89,7 +141,21 @@ export function AdminPanel() {
         updateUserLizcoins(newLizcoins)
       }
       
+      const transaction: Transaction = {
+        userId: selectedUserId,
+        username: allUsers[userIndex].username,
+        amount: amount,
+        reason: `Админ: ${amount > 0 ? 'начисление' : 'списание'}`,
+        timestamp: new Date().toISOString(),
+        balanceAfter: newLizcoins
+      }
+      
+      const allTransactions = JSON.parse(localStorage.getItem('lizcoinsTransactions') || '[]')
+      allTransactions.push(transaction)
+      localStorage.setItem('lizcoinsTransactions', JSON.stringify(allTransactions))
+      
       loadUsers()
+      loadTransactions()
       setMessage(`Успешно ${amount > 0 ? 'начислено' : 'списано'} ${Math.abs(amount)} ЛК пользователю ${allUsers[userIndex].username}`)
       setLizcoinsAmount('')
       setTimeout(() => setMessage(''), 3000)
@@ -152,12 +218,123 @@ export function AdminPanel() {
 
   const iconOptions = ['Gift', 'Award', 'Trophy', 'Star', 'Crown', 'Sparkles', 'Gem', 'Heart', 'Ticket', 'Medal']
 
+  const formatDate = (isoString: string) => {
+    const date = new Date(isoString)
+    return date.toLocaleString('ru-RU', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const getTotalStats = () => {
+    const totalUsers = users.length
+    const totalLizcoins = users.reduce((sum, user) => sum + user.lizcoins, 0)
+    const totalPurchases = purchases.length
+    const totalSpent = purchases.reduce((sum, p) => sum + p.price, 0)
+    
+    return { totalUsers, totalLizcoins, totalPurchases, totalSpent }
+  }
+
+  const stats = getTotalStats()
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-heritage-brown mb-2">Панель администратора</h1>
         <p className="text-muted-foreground">Управление пользователями и наградами портала Готовска</p>
       </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="border-heritage-brown/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <Icon name="Users" size={20} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Пользователей</p>
+                <p className="text-2xl font-bold text-heritage-brown">{stats.totalUsers}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-heritage-brown/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                <Icon name="Coins" size={20} className="text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Всего ЛК</p>
+                <p className="text-2xl font-bold text-heritage-brown">{stats.totalLizcoins}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-heritage-brown/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <Icon name="ShoppingBag" size={20} className="text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Покупок</p>
+                <p className="text-2xl font-bold text-heritage-brown">{stats.totalPurchases}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-heritage-brown/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <Icon name="TrendingUp" size={20} className="text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Потрачено ЛК</p>
+                <p className="text-2xl font-bold text-heritage-brown">{stats.totalSpent}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-heritage-brown/20">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={activeTab === 'manage' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('manage')}
+              className={activeTab === 'manage' ? 'bg-heritage-brown' : ''}
+            >
+              <Icon name="Settings" size={16} className="mr-2" />
+              Управление
+            </Button>
+            <Button
+              variant={activeTab === 'purchases' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('purchases')}
+              className={activeTab === 'purchases' ? 'bg-heritage-brown' : ''}
+            >
+              <Icon name="ShoppingBag" size={16} className="mr-2" />
+              Покупки ({purchases.length})
+            </Button>
+            <Button
+              variant={activeTab === 'transactions' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('transactions')}
+              className={activeTab === 'transactions' ? 'bg-heritage-brown' : ''}
+            >
+              <Icon name="History" size={16} className="mr-2" />
+              Транзакции ({transactions.length})
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
       {message && (
         <Alert className="border-heritage-brown/20 bg-heritage-beige/50">
@@ -166,6 +343,8 @@ export function AdminPanel() {
         </Alert>
       )}
 
+      {activeTab === 'manage' && (
+        <>
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="border-heritage-brown/20">
           <CardHeader>
@@ -356,6 +535,117 @@ export function AdminPanel() {
           </div>
         </CardContent>
       </Card>
+      </>
+      )}
+
+      {activeTab === 'purchases' && (
+        <Card className="border-heritage-brown/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-heritage-brown">
+              <Icon name="ShoppingBag" size={24} className="text-green-600" />
+              История покупок
+            </CardTitle>
+            <CardDescription>
+              Все покупки подарков пользователями
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {purchases.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Icon name="ShoppingBag" size={48} className="mx-auto mb-4 opacity-30" />
+                <p>Пока нет покупок</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {purchases.map((purchase, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 border border-heritage-brown/10 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <Icon name="Gift" size={20} className="text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-heritage-brown">{purchase.giftName}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Покупатель: {purchase.username}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(purchase.timestamp)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1">
+                        <Icon name="Coins" size={16} className="text-yellow-600" />
+                        <span className="font-bold text-heritage-brown">{purchase.price} ЛК</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'transactions' && (
+        <Card className="border-heritage-brown/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-heritage-brown">
+              <Icon name="History" size={24} className="text-blue-600" />
+              История транзакций
+            </CardTitle>
+            <CardDescription>
+              Все операции с лизкоинами пользователей
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {transactions.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Icon name="History" size={48} className="mx-auto mb-4 opacity-30" />
+                <p>Пока нет транзакций</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {transactions.map((transaction, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 border border-heritage-brown/10 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        transaction.amount > 0 ? 'bg-green-100' : 'bg-red-100'
+                      }`}>
+                        <Icon 
+                          name={transaction.amount > 0 ? 'TrendingUp' : 'TrendingDown'} 
+                          size={20} 
+                          className={transaction.amount > 0 ? 'text-green-600' : 'text-red-600'} 
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-heritage-brown">{transaction.username}</h3>
+                        <p className="text-sm text-muted-foreground">{transaction.reason}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(transaction.timestamp)} • Баланс после: {transaction.balanceAfter} ЛК
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`flex items-center gap-1 font-bold ${
+                        transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {transaction.amount > 0 ? '+' : ''}{transaction.amount} ЛК
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

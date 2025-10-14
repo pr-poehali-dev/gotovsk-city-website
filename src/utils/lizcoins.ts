@@ -7,6 +7,19 @@ export const addLizcoins = (amount: number, reason: string) => {
     const newLizcoins = user.lizcoins + amount
     updateUserLizcoins(newLizcoins)
     
+    const transaction = {
+      userId: user.id,
+      username: user.username,
+      amount: amount,
+      reason: reason,
+      timestamp: new Date().toISOString(),
+      balanceAfter: newLizcoins
+    }
+    
+    const allTransactions = JSON.parse(localStorage.getItem('lizcoinsTransactions') || '[]')
+    allTransactions.push(transaction)
+    localStorage.setItem('lizcoinsTransactions', JSON.stringify(allTransactions))
+    
     window.dispatchEvent(new CustomEvent('lizcoins-earned', { 
       detail: { amount, reason, newTotal: newLizcoins }
     }))
