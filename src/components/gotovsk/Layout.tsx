@@ -6,6 +6,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import Icon from '@/components/ui/icon'
 import { sections } from './data'
 import { getLizcoins } from '@/utils/lizcoins'
+import { getCurrentUser } from '@/utils/auth'
+import { AuthModal } from './AuthModal'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -17,9 +19,13 @@ interface LayoutProps {
 export function Layout({ children, activeSection, onSectionChange, earnedMessage }: LayoutProps) {
   const [lizcoins, setLizcoins] = useState(0)
   const [showEarned, setShowEarned] = useState('')
+  const [user, setUser] = useState(getCurrentUser())
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
-    setLizcoins(getLizcoins())
+    const currentUser = getCurrentUser()
+    setUser(currentUser)
+    setLizcoins(currentUser?.lizcoins || getLizcoins())
     
     const handleLizcoinsEarned = (event: any) => {
       setLizcoins(event.detail.newTotal)
@@ -27,8 +33,18 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
       setTimeout(() => setShowEarned(''), 3000)
     }
     
+    const handleAuthChange = () => {
+      const updatedUser = getCurrentUser()
+      setUser(updatedUser)
+      setLizcoins(updatedUser?.lizcoins || 0)
+    }
+    
     window.addEventListener('lizcoins-earned', handleLizcoinsEarned)
-    return () => window.removeEventListener('lizcoins-earned', handleLizcoinsEarned)
+    window.addEventListener('auth-change', handleAuthChange)
+    return () => {
+      window.removeEventListener('lizcoins-earned', handleLizcoinsEarned)
+      window.removeEventListener('auth-change', handleAuthChange)
+    }
   }, [])
   return (
     <div className="min-h-screen bg-background">
@@ -47,10 +63,30 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-200">
-                <Icon name="Coins" className="text-yellow-600" size={20} />
-                <span className="font-bold text-heritage-brown">{lizcoins} ЛК</span>
-              </div>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-200">
+                    <Icon name="Coins" className="text-yellow-600" size={20} />
+                    <span className="font-bold text-heritage-brown">{lizcoins} ЛК</span>
+                  </div>
+                  <Button 
+                    onClick={() => onSectionChange('profile')}
+                    variant="ghost"
+                    className="text-heritage-brown hover:bg-heritage-beige"
+                  >
+                    <Icon name="User" size={20} className="mr-2" />
+                    {user.username}
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="bg-heritage-brown hover:bg-heritage-brown/90"
+                >
+                  <Icon name="LogIn" size={20} className="mr-2" />
+                  Войти
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -144,6 +180,8 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
           </div>
         </div>
       </footer>
+      
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   )
 }

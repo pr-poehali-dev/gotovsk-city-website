@@ -7,9 +7,9 @@ import { AttractionsSection } from '@/components/gotovsk/AttractionsSection'
 import { TransportSection } from '@/components/gotovsk/TransportSection'
 import { HistorySection } from '@/components/gotovsk/HistorySection'
 import { NewsSection } from '@/components/gotovsk/NewsSection'
-
 import { MapSection } from '@/components/gotovsk/MapSection'
 import { GiftsSection } from '@/components/gotovsk/GiftsSection'
+import { ProfileSection } from '@/components/gotovsk/ProfileSection'
 
 function Index() {
   const [activeSection, setActiveSection] = useState('main')
@@ -44,6 +44,8 @@ function Index() {
         return <GiftsSection />
       case 'map':
         return <MapSection />
+      case 'profile':
+        return <ProfileSection />
       default:
         return <MainSection />
     }

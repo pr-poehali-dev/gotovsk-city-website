@@ -5,11 +5,11 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import Icon from '@/components/ui/icon'
 import { gifts } from './data'
+import { getCurrentUser, updateUserLizcoins } from '@/utils/auth'
+import { getLizcoins } from '@/utils/lizcoins'
 
 export function GiftsSection() {
-  const [lizcoins, setLizcoins] = useState(() => {
-    return parseInt(localStorage.getItem('lizcoins') || '0')
-  })
+  const [lizcoins, setLizcoins] = useState(() => getLizcoins())
   
   const [lastVisit, setLastVisit] = useState(() => {
     return localStorage.getItem('lastVisit') || ''
@@ -24,6 +24,7 @@ export function GiftsSection() {
 
   useEffect(() => {
     const today = new Date().toDateString()
+    const user = getCurrentUser()
     
     if (lastVisit !== today) {
       const newLizcoins = lizcoins + 10
@@ -31,7 +32,12 @@ export function GiftsSection() {
       setLastVisit(today)
       setMessage('Вы получили 10 лизкоинов за ежедневное посещение!')
       
-      localStorage.setItem('lizcoins', newLizcoins.toString())
+      if (user) {
+        updateUserLizcoins(newLizcoins)
+      } else {
+        localStorage.setItem('lizcoins', newLizcoins.toString())
+      }
+      
       localStorage.setItem('lastVisit', today)
       
       setTimeout(() => setMessage(''), 5000)
@@ -56,12 +62,18 @@ export function GiftsSection() {
 
     const newLizcoins = lizcoins - gift.price
     const newPurchasedGifts = [...purchasedGifts, gift.id]
+    const user = getCurrentUser()
     
     setLizcoins(newLizcoins)
+    
+    if (user) {
+      updateUserLizcoins(newLizcoins)
+    } else {
+      localStorage.setItem('lizcoins', newLizcoins.toString())
+    }
     setPurchasedGifts(newPurchasedGifts)
     setMessage(`Вы успешно приобрели: ${gift.name}!`)
     
-    localStorage.setItem('lizcoins', newLizcoins.toString())
     localStorage.setItem('purchasedGifts', JSON.stringify(newPurchasedGifts))
     
     setTimeout(() => setMessage(''), 5000)

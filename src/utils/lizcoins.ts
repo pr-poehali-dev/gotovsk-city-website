@@ -1,15 +1,29 @@
+import { getCurrentUser, updateUserLizcoins } from './auth'
+
 export const addLizcoins = (amount: number, reason: string) => {
-  const currentLizcoins = parseInt(localStorage.getItem('lizcoins') || '0')
-  const newLizcoins = currentLizcoins + amount
+  const user = getCurrentUser()
   
-  localStorage.setItem('lizcoins', newLizcoins.toString())
-  
-  // Trigger custom event for UI updates
-  window.dispatchEvent(new CustomEvent('lizcoins-earned', { 
-    detail: { amount, reason, newTotal: newLizcoins }
-  }))
-  
-  return newLizcoins
+  if (user) {
+    const newLizcoins = user.lizcoins + amount
+    updateUserLizcoins(newLizcoins)
+    
+    window.dispatchEvent(new CustomEvent('lizcoins-earned', { 
+      detail: { amount, reason, newTotal: newLizcoins }
+    }))
+    
+    return newLizcoins
+  } else {
+    const currentLizcoins = parseInt(localStorage.getItem('lizcoins') || '0')
+    const newLizcoins = currentLizcoins + amount
+    
+    localStorage.setItem('lizcoins', newLizcoins.toString())
+    
+    window.dispatchEvent(new CustomEvent('lizcoins-earned', { 
+      detail: { amount, reason, newTotal: newLizcoins }
+    }))
+    
+    return newLizcoins
+  }
 }
 
 export const trackSectionVisit = (sectionId: string, reward: number = 5) => {
@@ -40,5 +54,6 @@ const getSectionName = (sectionId: string): string => {
 }
 
 export const getLizcoins = (): number => {
-  return parseInt(localStorage.getItem('lizcoins') || '0')
+  const user = getCurrentUser()
+  return user ? user.lizcoins : parseInt(localStorage.getItem('lizcoins') || '0')
 }
