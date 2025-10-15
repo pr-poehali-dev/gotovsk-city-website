@@ -12,6 +12,8 @@ import { GiftsSection } from '@/components/gotovsk/GiftsSection'
 import { ProfileSection } from '@/components/gotovsk/ProfileSection'
 import { LeaderboardSection } from '@/components/gotovsk/LeaderboardSection'
 import { AdminPanel } from '@/components/gotovsk/AdminPanel'
+import GamesSection from '@/components/gotovsk/webapp/GamesSection'
+import AchievementsSection from '@/components/gotovsk/webapp/AchievementsSection'
 import { getCurrentUser } from '@/utils/auth'
 
 function Index() {
@@ -43,7 +45,10 @@ function Index() {
         return <HistorySection />
       case 'news':
         return <NewsSection />
-
+      case 'games':
+        return <GamesSection />
+      case 'achievements':
+        return <AchievementsSection />
       case 'gifts':
         return <GiftsSection />
       case 'leaderboard':

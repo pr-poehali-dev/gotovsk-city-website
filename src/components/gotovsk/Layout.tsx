@@ -8,6 +8,7 @@ import { sections } from './data'
 import { getLizcoins } from '@/utils/lizcoins'
 import { getCurrentUser } from '@/utils/auth'
 import { AuthModal } from './AuthModal'
+import AchievementNotification from './webapp/AchievementNotification'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -105,12 +106,12 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Navigation */}
           <aside className="lg:w-64 shrink-0">
-            <Card className="border-heritage-brown/20 sticky top-24">
-              <CardHeader>
+            <Card className="border-heritage-brown/20 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
+              <CardHeader className="sticky top-0 bg-white/95 backdrop-blur-sm z-10">
                 <CardTitle className="text-heritage-brown">Навигация</CardTitle>
               </CardHeader>
               <CardContent className="p-3">
-                <nav className="space-y-2">
+                <nav className="space-y-1">
                   {sections.map((section) => {
                     if (section.id === 'admin' && (!user || user.username !== 'Админ')) {
                       return null
@@ -119,13 +120,20 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
                       <Button
                         key={section.id}
                         variant={activeSection === section.id ? "default" : "ghost"}
-                        className={`w-full justify-start ${
+                        className={`w-full justify-start transition-all group ${
                           activeSection === section.id 
-                            ? 'bg-heritage-brown hover:bg-heritage-brown/90 text-white' 
-                            : 'text-heritage-brown hover:bg-heritage-beige'
+                            ? 'bg-heritage-brown hover:bg-heritage-brown/90 text-white shadow-lg scale-105' 
+                            : 'text-heritage-brown hover:bg-heritage-beige hover:scale-102'
                         }`}
                         onClick={() => onSectionChange(section.id)}
                       >
+                        <Icon 
+                          name={(section as any).icon || 'Circle'} 
+                          size={18} 
+                          className={`mr-2 transition-transform ${
+                            activeSection === section.id ? '' : 'group-hover:scale-110'
+                          }`}
+                        />
                         {section.label}
                       </Button>
                     )
@@ -187,6 +195,7 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
       </footer>
       
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <AchievementNotification />
     </div>
   )
 }

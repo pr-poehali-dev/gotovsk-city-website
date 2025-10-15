@@ -31,10 +31,12 @@ export function MainSection() {
 
       {/* Quick Info Cards */}
       <div className="grid md:grid-cols-3 gap-6">
-        <Card className="chrome-card hover:shadow-lg transition-all duration-300 chrome-reflection">
+        <Card className="chrome-card hover:shadow-2xl transition-all duration-300 hover:scale-105 chrome-reflection fade-in-up">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
-              <Icon name="MapPin" className="text-blue-400" size={24} />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center float-animation">
+                <Icon name="MapPin" className="text-white" size={24} />
+              </div>
               <CardTitle className="chrome-text">Расположение</CardTitle>
             </div>
           </CardHeader>
@@ -45,10 +47,12 @@ export function MainSection() {
           </CardContent>
         </Card>
 
-        <Card className="chrome-card hover:shadow-lg transition-all duration-300 chrome-reflection">
+        <Card className="chrome-card hover:shadow-2xl transition-all duration-300 hover:scale-105 chrome-reflection fade-in-up" style={{animationDelay: '0.1s'}}>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
-              <Icon name="Building2" className="text-purple-400" size={24} />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center float-animation" style={{animationDelay: '0.5s'}}>
+                <Icon name="Building2" className="text-white" size={24} />
+              </div>
               <CardTitle className="chrome-text">Архитектура</CardTitle>
             </div>
           </CardHeader>
@@ -59,10 +63,12 @@ export function MainSection() {
           </CardContent>
         </Card>
 
-        <Card className="chrome-card hover:shadow-lg transition-all duration-300 chrome-reflection">
+        <Card className="chrome-card hover:shadow-2xl transition-all duration-300 hover:scale-105 chrome-reflection fade-in-up" style={{animationDelay: '0.2s'}}>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
-              <Icon name="Trees" className="text-green-400" size={24} />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center float-animation" style={{animationDelay: '1s'}}>
+                <Icon name="Trees" className="text-white" size={24} />
+              </div>
               <CardTitle className="chrome-text">Экология</CardTitle>
             </div>
           </CardHeader>

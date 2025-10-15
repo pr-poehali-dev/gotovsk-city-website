@@ -1,15 +1,17 @@
 export const sections = [
-  { id: 'main', label: 'Главная' },
-  { id: 'districts', label: 'Районы' },
-  { id: 'transport', label: 'Транспорт' },
-  { id: 'news', label: 'Новости' },
-  { id: 'attractions', label: 'Достопримечательности' },
-  { id: 'history', label: 'История' },
-  { id: 'gifts', label: 'Подарки за лизкоины' },
-  { id: 'leaderboard', label: 'Таблица лидеров' },
-  { id: 'map', label: 'Карта' },
-  { id: 'profile', label: 'Профиль' },
-  { id: 'admin', label: 'Админ-панель' }
+  { id: 'main', label: 'Главная', icon: 'Home' },
+  { id: 'districts', label: 'Районы', icon: 'Building' },
+  { id: 'transport', label: 'Транспорт', icon: 'Bus' },
+  { id: 'news', label: 'Новости', icon: 'Newspaper' },
+  { id: 'attractions', label: 'Достопримечательности', icon: 'Landmark' },
+  { id: 'history', label: 'История', icon: 'BookOpen' },
+  { id: 'games', label: 'Игры', icon: 'Gamepad2' },
+  { id: 'achievements', label: 'Достижения', icon: 'Trophy' },
+  { id: 'gifts', label: 'Магазин подарков', icon: 'Gift' },
+  { id: 'leaderboard', label: 'Таблица лидеров', icon: 'Medal' },
+  { id: 'map', label: 'Карта', icon: 'Map' },
+  { id: 'profile', label: 'Профиль', icon: 'User' },
+  { id: 'admin', label: 'Админ-панель', icon: 'Shield' }
 ]
 
 export const districts = [
