@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button'
 import Icon from '@/components/ui/icon'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { addLizcoins } from '@/utils/lizcoins'
+import { addLizcoins, getLizcoins } from '@/utils/lizcoins'
 import { getCurrentUser } from '@/utils/auth'
+import { getCooldown, setCooldown, getSkipCost, skipCooldown, getRemainingTime, formatRemainingTime } from '@/utils/cooldowns'
+import CrosswordGame from './CrosswordGame'
 
 interface QuizQuestion {
   id: number
@@ -125,7 +127,7 @@ const initialQuests: Quest[] = [
 ]
 
 export default function GamesSection() {
-  const [activeGame, setActiveGame] = useState<'quiz' | 'puzzle' | 'quests' | null>(null)
+  const [activeGame, setActiveGame] = useState<'quiz' | 'puzzle' | 'quests' | 'crossword' | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [score, setScore] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
@@ -140,8 +142,22 @@ export default function GamesSection() {
   
   const [quests, setQuests] = useState<Quest[]>(initialQuests)
   const [message, setMessage] = useState('')
+  
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>({})
 
   const user = getCurrentUser()
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCooldowns({
+        quiz: getRemainingTime('quiz'),
+        puzzle: getRemainingTime('puzzle'),
+        crossword: getRemainingTime('crossword')
+      })
+    }, 1000)
+    
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     initPuzzle()
@@ -208,6 +224,7 @@ export default function GamesSection() {
         setShowResult(false)
       } else {
         setQuizCompleted(true)
+        setCooldown('quiz')
         if (correctAnswers + (isCorrect ? 1 : 0) === quizQuestions.length) {
           addLizcoins(50, 'Безупречное прохождение викторины!')
           updateQuestTask('master', 'quiz-perfect')
@@ -223,6 +240,39 @@ export default function GamesSection() {
     setShowResult(false)
     setCorrectAnswers(0)
     setQuizCompleted(false)
+  }
+  
+  const handleSkipCooldown = (gameId: string) => {
+    const cost = getSkipCost(gameId)
+    const balance = getLizcoins()
+    
+    if (balance < cost) {
+      setMessage(`Недостаточно лизкоинов! Нужно ${cost} ЛК`)
+      setTimeout(() => setMessage(''), 3000)
+      return
+    }
+    
+    addLizcoins(-cost, `Пропуск кулдауна ${gameId}`)
+    skipCooldown(gameId)
+    setCooldowns({ ...cooldowns, [gameId]: 0 })
+    setMessage(`Кулдаун пропущен за ${cost} ЛК!`)
+    setTimeout(() => setMessage(''), 3000)
+  }
+  
+  const startGame = (gameId: 'quiz' | 'puzzle' | 'crossword') => {
+    const cooldown = getCooldown(gameId)
+    if (cooldown) {
+      return
+    }
+    
+    setActiveGame(gameId)
+    if (gameId === 'quiz') resetQuiz()
+    if (gameId === 'puzzle') initPuzzle()
+  }
+  
+  const handleGameComplete = (gameId: string) => {
+    setCooldown(gameId)
+    setCooldowns({ ...cooldowns, [gameId]: getRemainingTime(gameId) })
   }
 
   const movePuzzlePiece = (pieceIndex: number) => {
@@ -254,12 +304,20 @@ export default function GamesSection() {
       const solved = newPieces.every(p => p.position === p.currentPosition)
       if (solved) {
         setPuzzleSolved(true)
+        handleGameComplete('puzzle')
         const reward = Math.max(50 - puzzleMoves, 20)
         addLizcoins(reward, `Решение пазла за ${puzzleMoves + 1} ходов`)
         setMessage(`Пазл решен за ${puzzleMoves + 1} ходов! +${reward} ЛК`)
         setTimeout(() => setMessage(''), 3000)
       }
     }
+  }
+  
+  const handleCrosswordComplete = (crosswordScore: number) => {
+    handleGameComplete('crossword')
+    addLizcoins(crosswordScore, 'Решение кроссворда')
+    setMessage(`Кроссворд решён! +${crosswordScore} ЛК`)
+    setTimeout(() => setMessage(''), 5000)
   }
 
   const updateQuestTask = (questId: string, taskId: string) => {
@@ -306,19 +364,40 @@ export default function GamesSection() {
       )}
 
       {!activeGame && (
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card className="chrome-card hover:scale-105 transition-transform cursor-pointer fade-in-up" onClick={() => setActiveGame('quiz')}>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card 
+            className={`border-2 border-blue-200 bg-white hover:scale-105 transition-transform cursor-pointer fade-in-up relative ${cooldowns.quiz ? 'opacity-60' : ''}`}
+            onClick={() => !cooldowns.quiz && startGame('quiz')}
+          >
+            {cooldowns.quiz > 0 && (
+              <div className="absolute inset-0 bg-gray-900/80 rounded-lg flex flex-col items-center justify-center z-10 p-4">
+                <Icon name="Clock" size={32} className="text-yellow-400 mb-2" />
+                <p className="text-white font-bold text-center mb-2">Кулдаун</p>
+                <p className="text-yellow-400 text-sm mb-3">{formatRemainingTime(cooldowns.quiz)}</p>
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleSkipCooldown('quiz')
+                  }}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold"
+                >
+                  <Icon name="Zap" size={16} />
+                  <span className="ml-1">Пропустить за {getSkipCost('quiz')} ЛК</span>
+                </Button>
+              </div>
+            )}
             <CardHeader>
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center float-animation">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center float-animation shadow-lg">
                 <Icon name="Brain" size={32} className="text-white" />
               </div>
-              <CardTitle className="text-center chrome-text">Викторина</CardTitle>
+              <CardTitle className="text-center text-gray-900">Викторина</CardTitle>
               <CardDescription className="text-center">
                 Проверьте свои знания о Готовске
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm text-muted-foreground text-center">
+              <div className="space-y-2 text-sm text-gray-600 text-center">
                 <p>• {quizQuestions.length} интересных вопросов</p>
                 <p>• Награды за правильные ответы</p>
                 <p>• Бонусы за серии ответов</p>
@@ -326,18 +405,40 @@ export default function GamesSection() {
             </CardContent>
           </Card>
 
-          <Card className="chrome-card hover:scale-105 transition-transform cursor-pointer fade-in-up" style={{animationDelay: '0.1s'}} onClick={() => setActiveGame('puzzle')}>
+          <Card 
+            className={`border-2 border-green-200 bg-white hover:scale-105 transition-transform cursor-pointer fade-in-up relative ${cooldowns.puzzle ? 'opacity-60' : ''}`}
+            style={{animationDelay: '0.1s'}}
+            onClick={() => !cooldowns.puzzle && startGame('puzzle')}
+          >
+            {cooldowns.puzzle > 0 && (
+              <div className="absolute inset-0 bg-gray-900/80 rounded-lg flex flex-col items-center justify-center z-10 p-4">
+                <Icon name="Clock" size={32} className="text-yellow-400 mb-2" />
+                <p className="text-white font-bold text-center mb-2">Кулдаун</p>
+                <p className="text-yellow-400 text-sm mb-3">{formatRemainingTime(cooldowns.puzzle)}</p>
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleSkipCooldown('puzzle')
+                  }}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold"
+                >
+                  <Icon name="Zap" size={16} />
+                  <span className="ml-1">Пропустить за {getSkipCost('puzzle')} ЛК</span>
+                </Button>
+              </div>
+            )}
             <CardHeader>
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center float-animation" style={{animationDelay: '0.5s'}}>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center float-animation shadow-lg" style={{animationDelay: '0.5s'}}>
                 <Icon name="Puzzle" size={32} className="text-white" />
               </div>
-              <CardTitle className="text-center chrome-text">Пазл</CardTitle>
+              <CardTitle className="text-center text-gray-900">Пазл</CardTitle>
               <CardDescription className="text-center">
                 Соберите изображение Готовска
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm text-muted-foreground text-center">
+              <div className="space-y-2 text-sm text-gray-600 text-center">
                 <p>• Классическая игра 3x3</p>
                 <p>• Награды за скорость</p>
                 <p>• Тренировка логики</p>
@@ -345,21 +446,66 @@ export default function GamesSection() {
             </CardContent>
           </Card>
 
-          <Card className="chrome-card hover:scale-105 transition-transform cursor-pointer fade-in-up" style={{animationDelay: '0.2s'}} onClick={() => setActiveGame('quests')}>
+          <Card 
+            className={`border-2 border-purple-200 bg-white hover:scale-105 transition-transform cursor-pointer fade-in-up relative ${cooldowns.crossword ? 'opacity-60' : ''}`}
+            style={{animationDelay: '0.15s'}}
+            onClick={() => !cooldowns.crossword && startGame('crossword')}
+          >
+            {cooldowns.crossword > 0 && (
+              <div className="absolute inset-0 bg-gray-900/80 rounded-lg flex flex-col items-center justify-center z-10 p-4">
+                <Icon name="Clock" size={32} className="text-yellow-400 mb-2" />
+                <p className="text-white font-bold text-center mb-2">Кулдаун</p>
+                <p className="text-yellow-400 text-sm mb-3">{formatRemainingTime(cooldowns.crossword)}</p>
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleSkipCooldown('crossword')
+                  }}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold"
+                >
+                  <Icon name="Zap" size={16} />
+                  <span className="ml-1">Пропустить за {getSkipCost('crossword')} ЛК</span>
+                </Button>
+              </div>
+            )}
             <CardHeader>
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center float-animation" style={{animationDelay: '1s'}}>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center float-animation shadow-lg" style={{animationDelay: '0.7s'}}>
+                <Icon name="Grid3x3" size={32} className="text-white" />
+              </div>
+              <CardTitle className="text-center text-gray-900">Кроссворд</CardTitle>
+              <CardDescription className="text-center">
+                Разгадайте городские слова
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm text-gray-600 text-center">
+                <p>• 4 слова о Готовске</p>
+                <p>• Разные кроссворды каждый раз</p>
+                <p>• Награды за правильные ответы</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="border-2 border-orange-200 bg-white hover:scale-105 transition-transform cursor-pointer fade-in-up" 
+            style={{animationDelay: '0.2s'}} 
+            onClick={() => setActiveGame('quests')}
+          >
+            <CardHeader>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center float-animation shadow-lg" style={{animationDelay: '1s'}}>
                 <Icon name="Trophy" size={32} className="text-white" />
               </div>
-              <CardTitle className="text-center chrome-text">Квесты</CardTitle>
+              <CardTitle className="text-center text-gray-900">Квесты</CardTitle>
               <CardDescription className="text-center">
                 Выполняйте задания и получайте награды
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm text-muted-foreground text-center">
+              <div className="space-y-2 text-sm text-gray-600 text-center">
                 <p>• {quests.filter(q => !q.completed).length} активных квестов</p>
                 <p>• Крупные награды</p>
-                <p>• Система достижений</p>
+                <p>• Без кулдаунов</p>
               </div>
             </CardContent>
           </Card>
@@ -578,6 +724,13 @@ export default function GamesSection() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {activeGame === 'crossword' && (
+        <CrosswordGame 
+          onComplete={handleCrosswordComplete}
+          onBack={() => setActiveGame(null)}
+        />
       )}
 
       {activeGame === 'quests' && (

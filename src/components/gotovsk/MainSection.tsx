@@ -67,7 +67,7 @@ export function MainSection() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center float-animation shadow-lg" style={{animationDelay: '1s'}}>
-                <Icon name="Trees" className="text-white" size={24} />
+                <Icon name="TreePine" fallback="Leaf" className="text-white" size={24} />
               </div>
               <CardTitle className="text-gray-900">Экология</CardTitle>
             </div>

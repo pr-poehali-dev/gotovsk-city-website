@@ -4,6 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import Icon from '@/components/ui/icon'
 
+interface Position {
+  x: number
+  y: number
+}
+
 const spotifyTracks = [
   { id: 1, name: "Blinding Lights", artist: "The Weeknd", uri: "spotify:track:0VjIjW4GlUZAMYd2vXMi3b" },
   { id: 2, name: "Shape of You", artist: "Ed Sheeran", uri: "spotify:track:7qiZfU4dY1lWllzX7mPBI" },
@@ -33,7 +38,11 @@ export default function MusicPlayer() {
   const [volume, setVolume] = useState(50)
   const [playlist, setPlaylist] = useState<typeof spotifyTracks>([])
   const [isMuted, setIsMuted] = useState(false)
+  const [position, setPosition] = useState<Position>({ x: window.innerWidth - 350, y: window.innerHeight - 280 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 })
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const cardRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const extended = []
@@ -53,6 +62,9 @@ export default function MusicPlayer() {
       setIsOpen(state.isOpen || false)
       setVolume(state.volume || 50)
       setIsMuted(state.isMuted || false)
+      if (state.position) {
+        setPosition(state.position)
+      }
     }
   }, [])
 
@@ -60,9 +72,39 @@ export default function MusicPlayer() {
     localStorage.setItem('music-player-state', JSON.stringify({
       isOpen,
       volume,
-      isMuted
+      isMuted,
+      position
     }))
-  }, [isOpen, volume, isMuted])
+  }, [isOpen, volume, isMuted, position])
+
+  useEffect(() => {
+    if (!isDragging) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newX = e.clientX - dragOffset.x
+      const newY = e.clientY - dragOffset.y
+      
+      const maxX = window.innerWidth - 320
+      const maxY = window.innerHeight - 200
+      
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      })
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, dragOffset])
 
   const togglePlay = () => {
     setIsPlaying(!isPlaying)
@@ -89,6 +131,17 @@ export default function MusicPlayer() {
     }
   }
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect()
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      })
+      setIsDragging(true)
+    }
+  }
+
   const currentTrack = playlist[currentTrackIndex]
 
   if (!currentTrack) return null
@@ -106,9 +159,20 @@ export default function MusicPlayer() {
       )}
 
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 z-40 w-80 shadow-2xl border-2 border-green-500/30 bg-white/95 backdrop-blur-md animate-slide-in-right">
+        <Card 
+          ref={cardRef}
+          className="fixed z-40 w-80 shadow-2xl border-2 border-green-500/30 bg-white/95 backdrop-blur-md transition-shadow hover:shadow-green-500/20"
+          style={{
+            left: `${position.x}px`,
+            top: `${position.y}px`,
+            cursor: isDragging ? 'grabbing' : 'grab'
+          }}
+        >
           <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
+            <div 
+              className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing"
+              onMouseDown={handleMouseDown}
+            >
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
                   <Icon name="Music" size={16} className="text-white" />
@@ -120,6 +184,7 @@ export default function MusicPlayer() {
                 size="sm"
                 onClick={() => setIsOpen(false)}
                 className="h-8 w-8 p-0 hover:bg-gray-100"
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <Icon name="ChevronDown" size={18} />
               </Button>
