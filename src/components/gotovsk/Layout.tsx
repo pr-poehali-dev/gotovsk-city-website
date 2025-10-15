@@ -9,6 +9,7 @@ import { getLizcoins } from '@/utils/lizcoins'
 import { getCurrentUser } from '@/utils/auth'
 import { AuthModal } from './AuthModal'
 import AchievementNotification from './webapp/AchievementNotification'
+import MusicPlayer from './webapp/MusicPlayer'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -196,6 +197,7 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
       
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       <AchievementNotification />
+      <MusicPlayer />
     </div>
   )
 }
