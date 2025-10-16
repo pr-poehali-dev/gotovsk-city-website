@@ -6,7 +6,7 @@ export function MainSection() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8 md:p-12 text-center border-2 border-blue-200 shadow-xl">
+      <div className="relative from-blue-50 to-purple-50 rounded-xl p-8 md:p-12 text-center border-2 border-blue-200 shadow-xl bg-gray-400">
         <div className="absolute inset-0 opacity-10 liquid-animation" style={{background: "url('https://cdn.poehali.dev/files/711c0cf6-000b-44c5-8eb5-a5b72c7da450.jpg')", backgroundSize: "cover", borderRadius: '0.75rem'}}></div>
         <div className="relative z-10">
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-4">
