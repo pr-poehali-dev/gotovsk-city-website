@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import Icon from '@/components/ui/icon'
 import { getCurrentUser, updateUserLizcoins } from '@/utils/auth'
+import { addKrestcoins, getKrestcoins } from '@/utils/krestcoins'
 import { gifts } from './data'
 
 interface User {
@@ -53,6 +54,7 @@ export function AdminPanel() {
   const [users, setUsers] = useState<User[]>([])
   const [selectedUserId, setSelectedUserId] = useState('')
   const [lizcoinsAmount, setLizcoinsAmount] = useState('')
+  const [krestcoinsAmount, setKrestcoinsAmount] = useState('')
   const [message, setMessage] = useState('')
   const [customGifts, setCustomGifts] = useState<Gift[]>([])
   
@@ -158,6 +160,41 @@ export function AdminPanel() {
       loadTransactions()
       setMessage(`Успешно ${amount > 0 ? 'начислено' : 'списано'} ${Math.abs(amount)} ЛК пользователю ${allUsers[userIndex].username}`)
       setLizcoinsAmount('')
+      setTimeout(() => setMessage(''), 3000)
+    }
+  }
+
+  const handleAddKrestcoins = () => {
+    if (!selectedUserId || !krestcoinsAmount) {
+      setMessage('Выберите пользователя и укажите количество Крест Клин')
+      setTimeout(() => setMessage(''), 3000)
+      return
+    }
+
+    const amount = parseInt(krestcoinsAmount)
+    if (isNaN(amount)) {
+      setMessage('Введите корректное число')
+      setTimeout(() => setMessage(''), 3000)
+      return
+    }
+
+    const allUsers = JSON.parse(localStorage.getItem('users') || '[]')
+    const userIndex = allUsers.findIndex((u: User) => u.id === selectedUserId)
+    
+    if (userIndex !== -1) {
+      const currentUserData = getCurrentUser()
+      const isSameUser = currentUserData && currentUserData.id === selectedUserId
+      
+      if (isSameUser) {
+        addKrestcoins(amount, `Админ: ${amount > 0 ? 'начисление' : 'списание'}`)
+      } else {
+        const currentKrest = parseInt(localStorage.getItem(`krestcoins-${selectedUserId}`) || '0')
+        const newKrest = currentKrest + amount
+        localStorage.setItem(`krestcoins-${selectedUserId}`, newKrest.toString())
+      }
+      
+      setMessage(`Успешно ${amount > 0 ? 'начислено' : 'списано'} ${Math.abs(amount)} КК пользователю ${allUsers[userIndex].username}`)
+      setKrestcoinsAmount('')
       setTimeout(() => setMessage(''), 3000)
     }
   }
@@ -399,6 +436,62 @@ export function AdminPanel() {
           </CardContent>
         </Card>
 
+        <Card className="border-purple-300 bg-gradient-to-br from-purple-50 to-purple-100">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-900">
+              <span className="text-2xl">✠</span>
+              Управление Крест Клин
+            </CardTitle>
+            <CardDescription className="text-purple-700">
+              Начисление или списание легендарной валюты
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="krest-user-select" className="text-purple-900">Выберите пользователя</Label>
+              <select
+                id="krest-user-select"
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                className="w-full p-2 border border-purple-300 rounded-md bg-white"
+              >
+                <option value="">-- Выберите пользователя --</option>
+                {users.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.username} ({getKrestcoins()} КК)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="krestcoins-amount" className="text-purple-900">Количество Крест Клин</Label>
+              <Input
+                id="krestcoins-amount"
+                type="number"
+                value={krestcoinsAmount}
+                onChange={(e) => setKrestcoinsAmount(e.target.value)}
+                placeholder="Введите число (может быть отрицательным)"
+                className="border-purple-300"
+              />
+              <p className="text-xs text-purple-700">
+                Положительное число для начисления, отрицательное для списания
+              </p>
+            </div>
+
+            <Button 
+              onClick={handleAddKrestcoins}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white"
+              disabled={!selectedUserId || !krestcoinsAmount}
+            >
+              <span className="mr-2">✠</span>
+              Применить изменения
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
         <Card className="border-heritage-brown/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-heritage-brown">

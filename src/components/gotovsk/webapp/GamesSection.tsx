@@ -561,6 +561,36 @@ export default function GamesSection() {
               </div>
             </CardContent>
           </Card>
+          
+          <Card 
+            className="border-2 border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-100 hover:scale-105 transition-transform cursor-pointer fade-in-up relative overflow-hidden" 
+            style={{animationDelay: '0.3s'}}
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-300/30 to-transparent rounded-full blur-2xl"></div>
+            <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-tr from-amber-300/20 to-transparent rounded-full blur-xl"></div>
+            
+            <CardHeader className="relative">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center float-animation shadow-xl relative" style={{animationDelay: '0.9s'}}>
+                <Icon name="Crown" size={32} className="text-white" />
+                <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20 rounded-full"></div>
+              </div>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <CardTitle className="text-center text-yellow-900">VIP Игры</CardTitle>
+                <Badge className="bg-yellow-500 text-yellow-950 border-yellow-600 text-xs">VIP</Badge>
+              </div>
+              <CardDescription className="text-center text-yellow-700">
+                Эксклюзивные развлечения для VIP
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative">
+              <div className="text-center py-8">
+                <div className="inline-block px-6 py-3 bg-white/70 rounded-lg border-2 border-yellow-400 shadow-md">
+                  <p className="text-2xl font-bold text-yellow-900 mb-1">COMING SOON</p>
+                  <p className="text-sm text-yellow-700">Скоро здесь появятся особые игры</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
