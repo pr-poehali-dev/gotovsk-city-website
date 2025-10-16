@@ -39,7 +39,7 @@ interface QuestTask {
   completed: boolean
 }
 
-const quizQuestions: QuizQuestion[] = [
+const allQuizQuestions: QuizQuestion[] = [
   {
     id: 1,
     question: 'В каком году был основан город Готовск?',
@@ -82,6 +82,46 @@ const quizQuestions: QuizQuestion[] = [
     question: 'Какая достопримечательность является символом города?',
     options: ['Ратуша', 'Музей истории', 'Парк Победы', 'Речной вокзал'],
     correct: 0,
+    reward: 15,
+    difficulty: 'medium'
+  },
+  {
+    id: 6,
+    question: 'Какая река протекает через Готовск?',
+    options: ['Волга', 'Нева', 'Готовка', 'Москва'],
+    correct: 2,
+    reward: 10,
+    difficulty: 'easy'
+  },
+  {
+    id: 7,
+    question: 'Сколько музеев в Готовске?',
+    options: ['2', '3', '4', '5'],
+    correct: 1,
+    reward: 15,
+    difficulty: 'medium'
+  },
+  {
+    id: 8,
+    question: 'Какое здание самое высокое в городе?',
+    options: ['Ратуша', 'Бизнес-центр "Высота"', 'Телебашня', 'Жилой комплекс "Вершина"'],
+    correct: 2,
+    reward: 20,
+    difficulty: 'hard'
+  },
+  {
+    id: 9,
+    question: 'Какой парк самый большой в Готовске?',
+    options: ['Парк Победы', 'Центральный парк', 'Речной парк', 'Лесопарк'],
+    correct: 0,
+    reward: 10,
+    difficulty: 'easy'
+  },
+  {
+    id: 10,
+    question: 'В каком году открылся первый театр?',
+    options: ['1850', '1900', '1925', '1950'],
+    correct: 2,
     reward: 15,
     difficulty: 'medium'
   }
@@ -128,6 +168,7 @@ const initialQuests: Quest[] = [
 
 export default function GamesSection() {
   const [activeGame, setActiveGame] = useState<'quiz' | 'puzzle' | 'quests' | 'crossword' | null>(null)
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [score, setScore] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
@@ -162,6 +203,10 @@ export default function GamesSection() {
   useEffect(() => {
     initPuzzle()
     loadQuestsProgress()
+    const shuffled = [...allQuizQuestions]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5)
+    setQuizQuestions(shuffled)
   }, [])
 
   const loadQuestsProgress = () => {
@@ -234,6 +279,11 @@ export default function GamesSection() {
   }
 
   const resetQuiz = () => {
+    const shuffled = [...allQuizQuestions]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5)
+    
+    setQuizQuestions(shuffled)
     setCurrentQuestion(0)
     setScore(0)
     setSelectedAnswer(null)
@@ -266,7 +316,9 @@ export default function GamesSection() {
     }
     
     setActiveGame(gameId)
-    if (gameId === 'quiz') resetQuiz()
+    if (gameId === 'quiz') {
+      resetQuiz()
+    }
     if (gameId === 'puzzle') initPuzzle()
   }
   
@@ -512,7 +564,7 @@ export default function GamesSection() {
         </div>
       )}
 
-      {activeGame === 'quiz' && !quizCompleted && (
+      {activeGame === 'quiz' && !quizCompleted && quizQuestions.length > 0 && (
         <Card className="chrome-card scale-in">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -605,7 +657,7 @@ export default function GamesSection() {
         </Card>
       )}
 
-      {activeGame === 'quiz' && quizCompleted && (
+      {activeGame === 'quiz' && quizCompleted && quizQuestions.length > 0 && (
         <Card className="chrome-card scale-in">
           <CardHeader>
             <CardTitle className="text-center chrome-text">Викторина завершена!</CardTitle>
@@ -641,14 +693,22 @@ export default function GamesSection() {
                   </p>
                 </div>
               )}
+              
+              <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                <div className="flex items-center justify-center gap-2 text-blue-400">
+                  <Icon name="Clock" size={20} />
+                  <p className="text-sm font-semibold">
+                    Следующая попытка через 24 часа
+                  </p>
+                </div>
+                <p className="text-xs text-center text-muted-foreground mt-1">
+                  Или пропустите кулдаун за лизкоины
+                </p>
+              </div>
             </div>
 
             <div className="flex gap-3">
-              <Button onClick={resetQuiz} className="flex-1 chrome-button">
-                <Icon name="RotateCcw" size={20} />
-                <span className="ml-2">Пройти еще раз</span>
-              </Button>
-              <Button onClick={() => setActiveGame(null)} variant="outline" className="flex-1">
+              <Button onClick={() => setActiveGame(null)} variant="outline" className="flex-1 chrome-button">
                 <Icon name="Home" size={20} />
                 <span className="ml-2">В меню</span>
               </Button>

@@ -1,7 +1,6 @@
 interface Cooldown {
   gameId: string
   endTime: number
-  skipCount: number
 }
 
 const COOLDOWN_DURATION = 24 * 60 * 60 * 1000
@@ -14,6 +13,7 @@ export function getCooldown(gameId: string): Cooldown | null {
   const cooldown = JSON.parse(saved) as Cooldown
   if (Date.now() >= cooldown.endTime) {
     localStorage.removeItem(`cooldown-${gameId}`)
+    localStorage.removeItem(`skip-count-${gameId}`)
     return null
   }
   
@@ -21,36 +21,29 @@ export function getCooldown(gameId: string): Cooldown | null {
 }
 
 export function setCooldown(gameId: string): void {
-  const existing = getCooldown(gameId)
-  const skipCount = existing?.skipCount || 0
-  
   const cooldown: Cooldown = {
     gameId,
-    endTime: Date.now() + COOLDOWN_DURATION,
-    skipCount
+    endTime: Date.now() + COOLDOWN_DURATION
   }
   
   localStorage.setItem(`cooldown-${gameId}`, JSON.stringify(cooldown))
 }
 
 export function getSkipCost(gameId: string): number {
-  const cooldown = getCooldown(gameId)
-  if (!cooldown) return BASE_SKIP_COST
+  const skipCountKey = `skip-count-${gameId}`
+  const savedSkipCount = localStorage.getItem(skipCountKey)
+  const skipCount = savedSkipCount ? parseInt(savedSkipCount, 10) : 0
   
-  return BASE_SKIP_COST * Math.pow(2, cooldown.skipCount)
+  return BASE_SKIP_COST * Math.pow(2, skipCount)
 }
 
 export function skipCooldown(gameId: string): void {
-  const cooldown = getCooldown(gameId)
-  if (!cooldown) return
+  const skipCountKey = `skip-count-${gameId}`
+  const savedSkipCount = localStorage.getItem(skipCountKey)
+  const currentSkipCount = savedSkipCount ? parseInt(savedSkipCount, 10) : 0
   
-  const newCooldown: Cooldown = {
-    gameId,
-    endTime: Date.now(),
-    skipCount: cooldown.skipCount + 1
-  }
-  
-  localStorage.setItem(`cooldown-${gameId}`, JSON.stringify(newCooldown))
+  localStorage.setItem(skipCountKey, (currentSkipCount + 1).toString())
+  localStorage.removeItem(`cooldown-${gameId}`)
 }
 
 export function getRemainingTime(gameId: string): number {
