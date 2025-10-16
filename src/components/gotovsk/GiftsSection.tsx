@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import Icon from '@/components/ui/icon'
+import CrystalAnimation from '@/components/ui/crystal-animation'
 import { gifts } from './data'
 import { getCurrentUser, updateUserLizcoins } from '@/utils/auth'
 import { getLizcoins } from '@/utils/lizcoins'
-import { getKrestcoins, hasVIPStatus, getVIPExpiry, activateVIP, renewVIP, formatVIPExpiry } from '@/utils/krestcoins'
+import { getKrestcoins, hasVIPStatus, getVIPExpiry, activateVIP, renewVIP, formatVIPExpiry, hasVIPEliteStatus, getVIPEliteExpiry, activateVIPElite, renewVIPElite } from '@/utils/krestcoins'
 
 export function GiftsSection() {
   const [user, setUser] = useState(getCurrentUser())
@@ -15,9 +16,15 @@ export function GiftsSection() {
   const [krestcoins, setKrestcoins] = useState(() => getKrestcoins())
   const [isVIP, setIsVIP] = useState(() => hasVIPStatus())
   const [vipExpiry, setVipExpiry] = useState(() => getVIPExpiry())
+  const [isVIPElite, setIsVIPElite] = useState(() => hasVIPEliteStatus())
+  const [vipEliteExpiry, setVipEliteExpiry] = useState(() => getVIPEliteExpiry())
   
-  const [lastVisit, setLastVisit] = useState(() => {
-    return localStorage.getItem('lastVisit') || ''
+  const [dailyRewardClaimed, setDailyRewardClaimed] = useState(() => {
+    const lastClaim = localStorage.getItem('dailyRewardClaimed')
+    if (!lastClaim) return false
+    const claimDate = new Date(lastClaim).toDateString()
+    const today = new Date().toDateString()
+    return claimDate === today
   })
   
   const [purchasedGifts, setPurchasedGifts] = useState(() => {
@@ -57,6 +64,8 @@ export function GiftsSection() {
       setKrestcoins(getKrestcoins())
       setIsVIP(hasVIPStatus())
       setVipExpiry(getVIPExpiry())
+      setIsVIPElite(hasVIPEliteStatus())
+      setVipEliteExpiry(getVIPEliteExpiry())
     }
     
     window.addEventListener('auth-change', handleAuthChange)
@@ -64,32 +73,20 @@ export function GiftsSection() {
     window.addEventListener('krestcoins-earned', handleKrestcoinsChange)
     window.addEventListener('vip-activated', handleKrestcoinsChange)
     window.addEventListener('vip-renewed', handleKrestcoinsChange)
+    window.addEventListener('vip-elite-activated', handleKrestcoinsChange)
+    window.addEventListener('vip-elite-renewed', handleKrestcoinsChange)
     return () => {
       window.removeEventListener('auth-change', handleAuthChange)
       window.removeEventListener('storage', handleCustomGiftsChange)
       window.removeEventListener('krestcoins-earned', handleKrestcoinsChange)
       window.removeEventListener('vip-activated', handleKrestcoinsChange)
       window.removeEventListener('vip-renewed', handleKrestcoinsChange)
+      window.removeEventListener('vip-elite-activated', handleKrestcoinsChange)
+      window.removeEventListener('vip-elite-renewed', handleKrestcoinsChange)
     }
   }, [])
 
-  useEffect(() => {
-    if (!user) return
-    
-    const today = new Date().toDateString()
-    
-    if (lastVisit !== today) {
-      const newLizcoins = lizcoins + 10
-      setLizcoins(newLizcoins)
-      setLastVisit(today)
-      setMessage('Вы получили 10 лизкоинов за ежедневное посещение!')
-      
-      updateUserLizcoins(newLizcoins)
-      localStorage.setItem('lastVisit', today)
-      
-      setTimeout(() => setMessage(''), 5000)
-    }
-  }, [user])
+
 
   const handlePurchase = (gift: typeof gifts[0]) => {
     if (!user) {
@@ -234,38 +231,96 @@ export function GiftsSection() {
         </Alert>
       )}
 
-      <Card className="border-heritage-brown/20">
+      <Card className="border-green-400 border-2 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-heritage-brown">
-            <Icon name="Gift" size={20} />
-            Как получить лизкоины
+          <CardTitle className="flex items-center gap-2 text-green-900">
+            <Icon name="Gift" size={24} className="text-green-600" />
+            Бесплатно
           </CardTitle>
+          <p className="text-green-700">Ежедневные награды для всех игроков</p>
         </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-3 bg-heritage-beige/30 rounded-lg">
-              <Icon name="Calendar" className="text-heritage-brown" size={20} />
-              <div>
-                <p className="font-medium">Ежедневный вход</p>
-                <p className="text-sm text-muted-foreground">+10 лизкоинов</p>
-              </div>
-            </div>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4">
+            <Card className={`border-2 ${!dailyRewardClaimed ? 'border-green-500 bg-green-100' : 'border-gray-300 bg-gray-100'}`}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center ${!dailyRewardClaimed ? 'bg-green-500' : 'bg-gray-400'}`}>
+                      <Icon name="Calendar" className="text-white" size={28} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-lg">Ежедневная награда</p>
+                      <div className="flex items-center gap-2">
+                        <Icon name="Coins" size={16} className="text-yellow-600" />
+                        <span className="font-semibold text-yellow-700">+50 ЛК</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      if (dailyRewardClaimed) {
+                        setMessage('Вы уже получили награду сегодня!')
+                      } else {
+                        const newLizcoins = lizcoins + 50
+                        setLizcoins(newLizcoins)
+                        updateUserLizcoins(newLizcoins)
+                        localStorage.setItem('dailyRewardClaimed', new Date().toISOString())
+                        setDailyRewardClaimed(true)
+                        setMessage('Вы получили ежедневную награду: 50 лизкоинов!')
+                      }
+                      setTimeout(() => setMessage(''), 3000)
+                    }}
+                    disabled={dailyRewardClaimed}
+                    className={!dailyRewardClaimed ? 'bg-green-600 hover:bg-green-700' : ''}
+                  >
+                    {dailyRewardClaimed ? 'Получено' : 'Забрать'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div className="flex items-center gap-3 p-3 bg-heritage-beige/30 rounded-lg">
-              <Icon name="Eye" className="text-heritage-brown" size={20} />
-              <div>
-                <p className="font-medium">Посещение разделов</p>
-                <p className="text-sm text-muted-foreground">+5 лизкоинов в день</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-heritage-beige/30 rounded-lg">
-              <Icon name="Trophy" className="text-heritage-brown" size={20} />
-              <div>
-                <p className="font-medium">Мероприятия</p>
-                <p className="text-sm text-muted-foreground">Бонусы за активность</p>
-              </div>
-            </div>
+            {isVIP && (
+              <Card className="border-2 border-yellow-500 bg-gradient-to-br from-yellow-100 to-amber-100">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-br from-yellow-500 to-amber-600">
+                        <Icon name="Crown" className="text-white" size={28} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-lg flex items-center gap-2">
+                          VIP Бонус
+                          <Badge className="bg-yellow-500 text-yellow-950">VIP</Badge>
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Icon name="Coins" size={16} className="text-yellow-600" />
+                          <span className="font-semibold text-yellow-700">+100 ЛК</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        const vipRewardKey = `vipDailyReward_${new Date().toDateString()}`
+                        const claimed = localStorage.getItem(vipRewardKey)
+                        if (claimed) {
+                          setMessage('Вы уже получили VIP награду сегодня!')
+                        } else {
+                          const newLizcoins = lizcoins + 100
+                          setLizcoins(newLizcoins)
+                          updateUserLizcoins(newLizcoins)
+                          localStorage.setItem(vipRewardKey, 'true')
+                          setMessage('Вы получили VIP награду: 100 лизкоинов!')
+                        }
+                        setTimeout(() => setMessage(''), 3000)
+                      }}
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                    >
+                      Забрать VIP
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -363,6 +418,128 @@ export function GiftsSection() {
           )}
         </CardContent>
       </Card>
+
+      <Card className="border-blue-500 border-2 bg-gradient-to-br from-blue-100 via-cyan-100 to-blue-200 shadow-2xl relative overflow-hidden">
+        <CrystalAnimation />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/40 to-transparent rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-cyan-400/30 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        
+        <CardHeader className="relative z-10">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center relative shadow-2xl animate-pulse">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
+                  <path d="M20 2L28 12H12L20 2Z" fill="currentColor" opacity="0.9"/>
+                  <path d="M28 12H12L4 24L20 36L36 24L28 12Z" fill="currentColor" opacity="0.7"/>
+                  <path d="M20 36L12 12L20 2L28 12L20 36Z" fill="currentColor"/>
+                </svg>
+                <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/30 rounded-2xl"></div>
+              </div>
+              <div>
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-3xl text-blue-950 font-black">VIP ELITE</CardTitle>
+                  <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 shadow-lg animate-pulse">ЛЕГЕНДА</Badge>
+                </div>
+                <p className="text-blue-800 mt-1 font-semibold">Максимальные привилегии на 30 дней</p>
+              </div>
+            </div>
+            
+            <div className="text-right">
+              <div className="flex items-center gap-1 bg-purple-200 px-4 py-2 rounded-full border-2 border-purple-400 shadow-lg">
+                <span className="text-3xl">✠</span>
+                <span className="font-black text-purple-900 text-2xl">50 КК</span>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-4 relative z-10">
+          <div className="grid md:grid-cols-2 gap-3">
+            <div className="flex items-center gap-2 p-3 bg-white/70 rounded-lg shadow border border-blue-200">
+              <Icon name="Coins" className="text-blue-600" size={20} />
+              <span className="text-sm font-semibold text-blue-950">Награды x2</span>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-white/70 rounded-lg shadow border border-blue-200">
+              <Icon name="Sparkles" className="text-blue-600" size={20} />
+              <span className="text-sm font-semibold text-blue-950">Все VIP игры</span>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-white/70 rounded-lg shadow border border-blue-200">
+              <Icon name="Gift" className="text-blue-600" size={20} />
+              <span className="text-sm font-semibold text-blue-950">Эксклюзивные подарки</span>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-white/70 rounded-lg shadow border border-blue-200">
+              <Icon name="Zap" className="text-blue-600" size={20} />
+              <span className="text-sm font-semibold text-blue-950">Ускорение x3</span>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-white/70 rounded-lg shadow border border-blue-200">
+              <Icon name="Trophy" className="text-blue-600" size={20} />
+              <span className="text-sm font-semibold text-blue-950">Уникальные достижения</span>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-white/70 rounded-lg shadow border border-blue-200">
+              <Icon name="Star" className="text-blue-600" size={20} />
+              <span className="text-sm font-semibold text-blue-950">Elite бейдж</span>
+            </div>
+          </div>
+          
+          <Button
+            onClick={() => {
+              if (isVIPElite) {
+                const success = renewVIPElite()
+                if (success) {
+                  setMessage('VIP Elite статус продлён на 30 дней!')
+                  setKrestcoins(getKrestcoins())
+                  setVipEliteExpiry(getVIPEliteExpiry())
+                } else {
+                  setMessage('Недостаточно Крест Клин! Нужно 50 КК')
+                }
+              } else {
+                const success = activateVIPElite()
+                if (success) {
+                  setMessage('VIP Elite статус активирован на 30 дней!')
+                  setKrestcoins(getKrestcoins())
+                  setIsVIPElite(true)
+                  setVipEliteExpiry(getVIPEliteExpiry())
+                } else {
+                  setMessage('Недостаточно Крест Клин! Нужно 50 КК')
+                }
+              }
+              setTimeout(() => setMessage(''), 3000)
+            }}
+            disabled={krestcoins < 50}
+            className={`w-full h-14 text-xl font-black ${
+              krestcoins >= 50
+                ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 hover:from-blue-700 hover:via-cyan-600 hover:to-blue-700 text-white shadow-2xl animate-pulse'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="inline">
+              <path d="M12 2L16 8H8L12 2Z"/>
+              <path d="M16 8H8L4 14L12 18L20 14L16 8Z" opacity="0.7"/>
+            </svg>
+            <span className="ml-2">
+              {isVIPElite ? 'Продлить VIP Elite' : 'Активировать VIP Elite'}
+            </span>
+          </Button>
+          
+          {krestcoins < 50 && (
+            <p className="text-center text-sm font-semibold text-blue-800 bg-blue-100 p-2 rounded-lg">
+              Крест Клин можно получить за мифические и легендарные достижения
+            </p>
+          )}
+        </CardContent>
+      </Card>
+      
+      {isVIPElite && vipEliteExpiry && (
+        <Alert className="border-blue-500 bg-gradient-to-r from-blue-100 to-cyan-100 shadow-lg">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="inline text-blue-600">
+            <path d="M10 2L14 8H6L10 2Z" fill="currentColor"/>
+            <path d="M14 8H6L2 14L10 18L18 14L14 8Z" fill="currentColor" opacity="0.7"/>
+          </svg>
+          <AlertDescription className="text-blue-950 font-bold ml-2">
+            VIP Elite активен • Осталось: {formatVIPExpiry(vipEliteExpiry)}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
         {[...gifts, ...customGifts].map((gift) => {

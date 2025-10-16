@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress'
 import Icon from '@/components/ui/icon'
 import { getCurrentUser } from '@/utils/auth'
 import { addLizcoins } from '@/utils/lizcoins'
+import { addKrestcoins } from '@/utils/krestcoins'
 
 interface Achievement {
   id: string
@@ -16,7 +17,8 @@ interface Achievement {
   current: number
   unlocked: boolean
   category: 'exploration' | 'social' | 'collector' | 'master' | 'special'
-  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+  rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'mythic'
+  krestReward?: number
 }
 
 const initialAchievements: Achievement[] = [
@@ -177,16 +179,199 @@ const initialAchievements: Achievement[] = [
     rarity: 'epic'
   },
   {
-    id: 'legend',
-    title: 'Легенда Готовска',
-    description: 'Разблокируйте все достижения',
-    icon: 'Crown',
-    reward: 500,
-    requirement: 13,
+    id: 'gothic-historian',
+    title: 'Готский Историк',
+    description: 'Изучите всю историю Готовска (10 разделов)',
+    icon: 'BookOpen',
+    reward: 200,
+    krestReward: 1,
+    requirement: 10,
+    current: 0,
+    unlocked: false,
+    category: 'master',
+    rarity: 'legendary'
+  },
+  {
+    id: 'master-collector',
+    title: 'Великий Коллекционер',
+    description: 'Соберите 15 уникальных подарков',
+    icon: 'Package',
+    reward: 200,
+    krestReward: 1,
+    requirement: 15,
+    current: 0,
+    unlocked: false,
+    category: 'collector',
+    rarity: 'legendary'
+  },
+  {
+    id: 'quiz-perfectionist',
+    title: 'Совершенный Разум',
+    description: 'Пройдите 5 викторин без единой ошибки',
+    icon: 'Brain',
+    reward: 250,
+    krestReward: 1,
+    requirement: 5,
+    current: 0,
+    unlocked: false,
+    category: 'master',
+    rarity: 'legendary'
+  },
+  {
+    id: 'millionaire',
+    title: 'Лизкоин Миллионер',
+    description: 'Накопите 5000 лизкоинов за всё время',
+    icon: 'Sparkles',
+    reward: 300,
+    krestReward: 1,
+    requirement: 5000,
+    current: 0,
+    unlocked: false,
+    category: 'collector',
+    rarity: 'legendary'
+  },
+  {
+    id: 'explorer-legend',
+    title: 'Легендарный Путешественник',
+    description: 'Посетите каждый раздел 50 раз',
+    icon: 'Globe',
+    reward: 250,
+    krestReward: 1,
+    requirement: 50,
+    current: 0,
+    unlocked: false,
+    category: 'exploration',
+    rarity: 'legendary'
+  },
+  {
+    id: 'game-master',
+    title: 'Мастер Всех Игр',
+    description: 'Победите в каждой игре минимум 10 раз',
+    icon: 'Gamepad2',
+    reward: 300,
+    krestReward: 1,
+    requirement: 10,
+    current: 0,
+    unlocked: false,
+    category: 'master',
+    rarity: 'legendary'
+  },
+  {
+    id: 'daily-champion',
+    title: 'Чемпион Преданности',
+    description: 'Посещайте портал 30 дней подряд',
+    icon: 'CalendarCheck',
+    reward: 250,
+    krestReward: 1,
+    requirement: 30,
     current: 0,
     unlocked: false,
     category: 'special',
     rarity: 'legendary'
+  },
+  {
+    id: 'social-legend',
+    title: 'Душа Готовска',
+    description: 'Оставьте 100 комментариев и лайков',
+    icon: 'Heart',
+    reward: 200,
+    krestReward: 1,
+    requirement: 100,
+    current: 0,
+    unlocked: false,
+    category: 'social',
+    rarity: 'legendary'
+  },
+  {
+    id: 'ancient-guardian',
+    title: 'Хранитель Древности',
+    description: 'Откройте 20 секретных мест в городе',
+    icon: 'Shield',
+    reward: 500,
+    krestReward: 5,
+    requirement: 20,
+    current: 0,
+    unlocked: false,
+    category: 'special',
+    rarity: 'mythic'
+  },
+  {
+    id: 'eternal-scholar',
+    title: 'Вечный Учёный',
+    description: 'Ответьте на 500 вопросов правильно',
+    icon: 'GraduationCap',
+    reward: 500,
+    krestReward: 5,
+    requirement: 500,
+    current: 0,
+    unlocked: false,
+    category: 'master',
+    rarity: 'mythic'
+  },
+  {
+    id: 'treasure-hunter',
+    title: 'Охотник за Сокровищами',
+    description: 'Найдите все 25 скрытых артефактов Готовска',
+    icon: 'Gem',
+    reward: 600,
+    krestReward: 5,
+    requirement: 25,
+    current: 0,
+    unlocked: false,
+    category: 'collector',
+    rarity: 'mythic'
+  },
+  {
+    id: 'time-traveler',
+    title: 'Путешественник во Времени',
+    description: 'Изучите историю с 1284 года до наших дней',
+    icon: 'Clock',
+    reward: 700,
+    krestReward: 5,
+    requirement: 1,
+    current: 0,
+    unlocked: false,
+    category: 'special',
+    rarity: 'mythic'
+  },
+  {
+    id: 'ultimate-champion',
+    title: 'Абсолютный Чемпион',
+    description: 'Займите 1 место в таблице лидеров 10 раз',
+    icon: 'Trophy',
+    reward: 800,
+    krestReward: 5,
+    requirement: 10,
+    current: 0,
+    unlocked: false,
+    category: 'special',
+    rarity: 'mythic'
+  },
+  {
+    id: 'grand-patron',
+    title: 'Великий Меценат',
+    description: 'Потратьте 10000 лизкоинов в магазине',
+    icon: 'DollarSign',
+    reward: 500,
+    krestReward: 5,
+    requirement: 10000,
+    current: 0,
+    unlocked: false,
+    category: 'collector',
+    rarity: 'mythic'
+  },
+  {
+    id: 'myth-legend',
+    title: 'Легенда Готовска',
+    description: 'Разблокируйте все достижения портала',
+    icon: 'Crown',
+    reward: 1000,
+    krestReward: 5,
+    requirement: 33,
+    current: 0,
+    unlocked: false,
+    category: 'special',
+    rarity: 'mythic'
   }
 ]
 
@@ -267,20 +452,27 @@ export default function AchievementsSection() {
         
         addLizcoins(achievement.reward, `Достижение: ${achievement.title}`)
         
+        if (achievement.krestReward) {
+          addKrestcoins(achievement.krestReward, `Достижение: ${achievement.title}`)
+        }
+        
         window.dispatchEvent(new CustomEvent('achievement-unlocked', {
           detail: achievement
         }))
       }
     })
 
-    const legendAchievement = updatedAchievements.find(a => a.id === 'legend')
-    if (legendAchievement) {
-      const unlockedCount = updatedAchievements.filter(a => a.unlocked && a.id !== 'legend').length
-      legendAchievement.current = unlockedCount
-      if (unlockedCount >= legendAchievement.requirement && !legendAchievement.unlocked) {
-        legendAchievement.unlocked = true
+    const mythLegendAchievement = updatedAchievements.find(a => a.id === 'myth-legend')
+    if (mythLegendAchievement) {
+      const unlockedCount = updatedAchievements.filter(a => a.unlocked && a.id !== 'myth-legend').length
+      mythLegendAchievement.current = unlockedCount
+      if (unlockedCount >= mythLegendAchievement.requirement && !mythLegendAchievement.unlocked) {
+        mythLegendAchievement.unlocked = true
         hasChanges = true
-        addLizcoins(legendAchievement.reward, `Достижение: ${legendAchievement.title}`)
+        addLizcoins(mythLegendAchievement.reward, `Достижение: ${mythLegendAchievement.title}`)
+        if (mythLegendAchievement.krestReward) {
+          addKrestcoins(mythLegendAchievement.krestReward, `Достижение: ${mythLegendAchievement.title}`)
+        }
       }
     }
 
@@ -295,6 +487,7 @@ export default function AchievementsSection() {
       case 'rare': return 'from-blue-500 to-blue-700'
       case 'epic': return 'from-purple-500 to-purple-700'
       case 'legendary': return 'from-yellow-500 to-orange-600'
+      case 'mythic': return 'from-pink-500 via-red-500 to-purple-600'
     }
   }
 
@@ -304,6 +497,7 @@ export default function AchievementsSection() {
       case 'rare': return 'border-blue-500/50'
       case 'epic': return 'border-purple-500/50'
       case 'legendary': return 'border-yellow-500/50'
+      case 'mythic': return 'border-pink-500/50'
     }
   }
 
@@ -338,7 +532,7 @@ export default function AchievementsSection() {
       return progressB - progressA
     })
   } else if (sortBy === 'rarity') {
-    const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 }
+    const rarityOrder = { mythic: 5, legendary: 4, epic: 3, rare: 2, common: 1 }
     filteredAchievements = [...filteredAchievements].sort((a, b) => {
       return rarityOrder[b.rarity] - rarityOrder[a.rarity]
     })
@@ -351,6 +545,7 @@ export default function AchievementsSection() {
     rare: achievements.filter(a => a.rarity === 'rare' && a.unlocked).length,
     epic: achievements.filter(a => a.rarity === 'epic' && a.unlocked).length,
     legendary: achievements.filter(a => a.rarity === 'legendary' && a.unlocked).length,
+    mythic: achievements.filter(a => a.rarity === 'mythic' && a.unlocked).length,
   }
 
   const categories: Achievement['category'][] = ['exploration', 'collector', 'master', 'special']
@@ -368,7 +563,7 @@ export default function AchievementsSection() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="p-4 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-700/20 border border-blue-500/30">
               <div className="text-3xl font-bold text-blue-400">{stats.unlocked}/{stats.total}</div>
               <div className="text-sm text-muted-foreground">Разблокировано</div>
@@ -388,6 +583,10 @@ export default function AchievementsSection() {
             <div className="p-4 rounded-lg bg-gradient-to-br from-yellow-500/20 to-orange-600/20 border border-yellow-500/30 pulse-glow">
               <div className="text-3xl font-bold text-yellow-400">{stats.legendary}</div>
               <div className="text-sm text-muted-foreground">Легендарные</div>
+            </div>
+            <div className="p-4 rounded-lg bg-gradient-to-br from-pink-500/20 via-red-500/20 to-purple-600/20 border border-pink-500/30 animate-pulse">
+              <div className="text-3xl font-bold text-pink-400">{stats.mythic}</div>
+              <div className="text-sm text-muted-foreground">Мифические</div>
             </div>
           </div>
 
@@ -456,6 +655,7 @@ export default function AchievementsSection() {
                         {achievement.rarity === 'rare' && 'Редкое'}
                         {achievement.rarity === 'epic' && 'Эпическое'}
                         {achievement.rarity === 'legendary' && 'Легендарное'}
+                        {achievement.rarity === 'mythic' && 'Мифическое'}
                       </Badge>
                     </div>
                     <CardDescription>
@@ -480,9 +680,17 @@ export default function AchievementsSection() {
                     <Icon name={getCategoryIcon(achievement.category)} size={16} />
                     <span>{getCategoryName(achievement.category)}</span>
                   </div>
-                  <div className="flex items-center gap-1 font-bold text-yellow-500">
-                    <Icon name="Coins" size={16} />
-                    <span>{achievement.reward} ЛК</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1 font-bold text-yellow-500">
+                      <Icon name="Coins" size={16} />
+                      <span>{achievement.reward} ЛК</span>
+                    </div>
+                    {achievement.krestReward && (
+                      <div className="flex items-center gap-1 font-bold text-purple-500">
+                        <span className="text-lg">✠</span>
+                        <span>{achievement.krestReward} КК</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

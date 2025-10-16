@@ -8,7 +8,8 @@ interface Achievement {
   description: string
   icon: string
   reward: number
-  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+  krestReward?: number
+  rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'mythic'
 }
 
 export default function AchievementNotification() {
@@ -41,6 +42,7 @@ export default function AchievementNotification() {
       case 'rare': return 'from-blue-500 to-blue-700'
       case 'epic': return 'from-purple-500 to-purple-700'
       case 'legendary': return 'from-yellow-500 to-orange-600'
+      case 'mythic': return 'from-pink-500 via-red-500 to-purple-600'
     }
   }
 
@@ -64,13 +66,22 @@ export default function AchievementNotification() {
                   {notification.rarity === 'rare' && 'Редкое достижение'}
                   {notification.rarity === 'epic' && 'Эпическое достижение'}
                   {notification.rarity === 'legendary' && '🎉 Легендарное достижение!'}
+                  {notification.rarity === 'mythic' && '🔥 МИФИЧЕСКОЕ ДОСТИЖЕНИЕ!'}
                 </p>
               </div>
               <h3 className="text-xl font-bold mb-1">{notification.title}</h3>
               <p className="text-white/90 text-sm mb-3">{notification.description}</p>
-              <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-1 w-fit">
-                <Icon name="Coins" size={16} className="text-yellow-300" />
-                <span className="font-bold text-yellow-300">+{notification.reward} ЛК</span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-1">
+                  <Icon name="Coins" size={16} className="text-yellow-300" />
+                  <span className="font-bold text-yellow-300">+{notification.reward} ЛК</span>
+                </div>
+                {notification.krestReward && (
+                  <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-1 animate-pulse">
+                    <span className="text-xl">✠</span>
+                    <span className="font-bold text-purple-200">+{notification.krestReward} КК</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
