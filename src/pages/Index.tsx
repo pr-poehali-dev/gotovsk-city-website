@@ -15,13 +15,21 @@ import { AdminPanel } from '@/components/gotovsk/AdminPanel'
 import GamesSection from '@/components/gotovsk/webapp/GamesSection'
 import AchievementsSection from '@/components/gotovsk/webapp/AchievementsSection'
 import { getCurrentUser } from '@/utils/auth'
+import { AuthModal } from '@/components/gotovsk/AuthModal'
 
 function Index() {
   const [activeSection, setActiveSection] = useState('main')
   const [earnedMessage, setEarnedMessage] = useState('')
+  const [showWelcomeAuth, setShowWelcomeAuth] = useState(false)
 
   useEffect(() => {
     const user = getCurrentUser()
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome')
+    
+    if (!user && !hasSeenWelcome) {
+      setShowWelcomeAuth(true)
+    }
+    
     if (user && activeSection !== 'main' && activeSection !== 'gifts' && activeSection !== 'leaderboard' && activeSection !== 'admin') {
       const earned = trackSectionVisit(activeSection)
       if (earned) {
@@ -30,6 +38,11 @@ function Index() {
       }
     }
   }, [activeSection])
+
+  const handleCloseWelcomeAuth = () => {
+    setShowWelcomeAuth(false)
+    localStorage.setItem('hasSeenWelcome', 'true')
+  }
 
   const renderContent = () => {
     switch (activeSection) {
@@ -65,9 +78,12 @@ function Index() {
   }
 
   return (
-    <Layout activeSection={activeSection} onSectionChange={setActiveSection}>
-      {renderContent()}
-    </Layout>
+    <>
+      <Layout activeSection={activeSection} onSectionChange={setActiveSection}>
+        {renderContent()}
+      </Layout>
+      <AuthModal isOpen={showWelcomeAuth} onClose={handleCloseWelcomeAuth} />
+    </>
   )
 }
 
