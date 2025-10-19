@@ -114,7 +114,7 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
               <CardContent className="p-3">
                 <nav className="space-y-1">
                   {sections.map((section) => {
-                    if (section.id === 'admin' && (!user || user.username !== 'Админ')) {
+                    if (section.id === 'admin' && (!user || (user.username !== 'Админ' && user.username !== 'Володя'))) {
                       return null
                     }
                     return (
