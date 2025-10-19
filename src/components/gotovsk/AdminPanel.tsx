@@ -9,7 +9,10 @@ import { Separator } from '@/components/ui/separator'
 import Icon from '@/components/ui/icon'
 import { getCurrentUser, updateUserLizcoins } from '@/utils/auth'
 import { addKrestcoins, getKrestcoins } from '@/utils/krestcoins'
+import { getAdminRank, getAdminPermissions, setAdminRank, getRankLabel, getRankColor, getAllAdmins, type AdminRank } from '@/utils/adminRanks'
 import { gifts } from './data'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
 
 interface User {
   id: string
@@ -62,16 +65,36 @@ export function AdminPanel() {
   const [newGiftPrice, setNewGiftPrice] = useState('')
   const [newGiftDescription, setNewGiftDescription] = useState('')
   const [newGiftIcon, setNewGiftIcon] = useState('Gift')
-  const [activeTab, setActiveTab] = useState<'manage' | 'purchases' | 'transactions'>('manage')
+  const [activeTab, setActiveTab] = useState<'manage' | 'purchases' | 'transactions' | 'admins'>('manage')
+  const [adminRank, setAdminRankState] = useState<AdminRank>(null)
+  const [permissions, setPermissions] = useState(getAdminPermissions(null))
+  const [allAdmins, setAllAdmins] = useState(getAllAdmins())
   const [purchases, setPurchases] = useState<Purchase[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
 
   useEffect(() => {
+    if (currentUser) {
+      const rank = getAdminRank(currentUser.username)
+      setAdminRankState(rank)
+      setPermissions(getAdminPermissions(rank))
+    }
     loadUsers()
     loadCustomGifts()
     loadPurchases()
     loadTransactions()
+    loadAdmins()
+    
+    const handleAdminRanksChange = () => {
+      loadAdmins()
+    }
+    
+    window.addEventListener('admin-ranks-changed', handleAdminRanksChange)
+    return () => window.removeEventListener('admin-ranks-changed', handleAdminRanksChange)
   }, [])
+
+  const loadAdmins = () => {
+    setAllAdmins(getAllAdmins())
+  }
 
   const loadUsers = () => {
     const allUsers = JSON.parse(localStorage.getItem('users') || '[]')
@@ -240,17 +263,24 @@ export function AdminPanel() {
     setTimeout(() => setMessage(''), 3000)
   }
 
-  if (!currentUser || currentUser.username !== 'Админ') {
+  if (!currentUser || !adminRank) {
     return (
       <div className="space-y-6">
         <Alert className="border-red-200 bg-red-50">
           <Icon name="ShieldAlert" size={16} className="text-red-600" />
           <AlertDescription className="text-red-800">
-            Доступ запрещен. Эта страница доступна только администратору.
+            Доступ запрещен. Эта страница доступна только администраторам.
           </AlertDescription>
         </Alert>
       </div>
     )
+  }
+
+  const handleSetAdminRank = (username: string, rank: AdminRank) => {
+    setAdminRank(username, rank)
+    loadAdmins()
+    setMessage(`Ранг ${username} изменён на ${getRankLabel(rank)}`)
+    setTimeout(() => setMessage(''), 3000)
   }
 
   const iconOptions = ['Gift', 'Award', 'Trophy', 'Star', 'Crown', 'Sparkles', 'Gem', 'Heart', 'Ticket', 'Medal']
@@ -369,8 +399,35 @@ export function AdminPanel() {
               <Icon name="History" size={16} className="mr-2" />
               Транзакции ({transactions.length})
             </Button>
+            {permissions.canManageAdmins && (
+              <Button
+                variant={activeTab === 'admins' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('admins')}
+                className={activeTab === 'admins' ? 'bg-heritage-brown' : ''}
+              >
+                <Icon name="Shield" size={16} className="mr-2" />
+                Администраторы ({allAdmins.length})
+              </Button>
+            )}
           </div>
         </CardHeader>
+      </Card>
+      
+      <Card className={`border-2 bg-gradient-to-r ${getRankColor(adminRank)}`}>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3 text-white">
+            <Icon name="Shield" size={24} />
+            <div>
+              <p className="font-semibold">Ваш ранг: {getRankLabel(adminRank)}</p>
+              <p className="text-sm text-white/90">
+                {adminRank === 'super_admin' && 'Полный доступ ко всем функциям'}
+                {adminRank === 'senior_admin' && 'Управление пользователями, наградами и новостями'}
+                {adminRank === 'middle_admin' && 'Управление наградами и новостями'}
+                {adminRank === 'junior_admin' && 'Управление новостями и просмотр статистики'}
+              </p>
+            </div>
+          </div>
+        </CardContent>
       </Card>
 
       {message && (
@@ -394,22 +451,31 @@ export function AdminPanel() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="user-select">Выберите пользователя</Label>
-              <select
-                id="user-select"
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="w-full p-2 border border-heritage-brown/20 rounded-md bg-white"
-              >
-                <option value="">-- Выберите пользователя --</option>
-                {users.map(user => (
-                  <option key={user.id} value={user.id}>
-                    {user.username} ({user.lizcoins} ЛК)
-                  </option>
-                ))}
-              </select>
-            </div>
+            {!permissions.canManageUsers ? (
+              <Alert className="border-orange-200 bg-orange-50">
+                <Icon name="Lock" size={16} className="text-orange-600" />
+                <AlertDescription className="text-orange-800">
+                  У вас нет прав для управления пользователями
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="user-select">Выберите пользователя</Label>
+                  <select
+                    id="user-select"
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    className="w-full p-2 border border-heritage-brown/20 rounded-md bg-white"
+                  >
+                    <option value="">-- Выберите пользователя --</option>
+                    {users.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.username} ({user.lizcoins} ЛК)
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
             <div className="space-y-2">
               <Label htmlFor="lizcoins-amount">Количество лизкоинов</Label>
@@ -425,14 +491,16 @@ export function AdminPanel() {
               </p>
             </div>
 
-            <Button 
-              onClick={handleAddLizcoins}
-              className="w-full bg-heritage-brown hover:bg-heritage-brown/90"
-              disabled={!selectedUserId || !lizcoinsAmount}
-            >
-              <Icon name="Plus" size={16} className="mr-2" />
-              Применить изменения
-            </Button>
+                <Button 
+                  onClick={handleAddLizcoins}
+                  className="w-full bg-heritage-brown hover:bg-heritage-brown/90"
+                  disabled={!selectedUserId || !lizcoinsAmount}
+                >
+                  <Icon name="Plus" size={16} className="mr-2" />
+                  Применить изменения
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -503,15 +571,24 @@ export function AdminPanel() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="gift-name">Название награды</Label>
-              <Input
-                id="gift-name"
-                value={newGiftName}
-                onChange={(e) => setNewGiftName(e.target.value)}
-                placeholder="Сертификат в музей"
-              />
-            </div>
+            {!permissions.canManageGifts ? (
+              <Alert className="border-orange-200 bg-orange-50">
+                <Icon name="Lock" size={16} className="text-orange-600" />
+                <AlertDescription className="text-orange-800">
+                  У вас нет прав для управления наградами
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="gift-name">Название награды</Label>
+                  <Input
+                    id="gift-name"
+                    value={newGiftName}
+                    onChange={(e) => setNewGiftName(e.target.value)}
+                    placeholder="Сертификат в музей"
+                  />
+                </div>
 
             <div className="space-y-2">
               <Label htmlFor="gift-price">Цена (лизкоины)</Label>
@@ -549,14 +626,16 @@ export function AdminPanel() {
               </select>
             </div>
 
-            <Button 
-              onClick={handleAddGift}
-              className="w-full bg-purple-600 hover:bg-purple-700"
-              disabled={!newGiftName || !newGiftPrice || !newGiftDescription}
-            >
-              <Icon name="Plus" size={16} className="mr-2" />
-              Добавить награду
-            </Button>
+                <Button 
+                  onClick={handleAddGift}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  disabled={!newGiftName || !newGiftPrice || !newGiftDescription}
+                >
+                  <Icon name="Plus" size={16} className="mr-2" />
+                  Добавить награду
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -736,6 +815,159 @@ export function AdminPanel() {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'admins' && permissions.canManageAdmins && (
+        <Card className="border-heritage-brown/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-heritage-brown">
+              <Icon name="Shield" size={24} className="text-red-600" />
+              Управление администраторами
+            </CardTitle>
+            <CardDescription>
+              Назначение рангов и управление правами доступа
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 mb-6">
+              <h3 className="font-semibold text-heritage-brown">Уровни доступа:</h3>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="p-3 border-2 border-red-200 rounded-lg bg-gradient-to-r from-red-50 to-orange-50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="Crown" size={20} className="text-red-600" />
+                    <h4 className="font-bold text-red-900">Главный Администратор</h4>
+                  </div>
+                  <p className="text-sm text-red-700">✓ Все права • ✓ Управление админами • ✓ Управление пользователями</p>
+                </div>
+                
+                <div className="p-3 border-2 border-purple-200 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="ShieldCheck" size={20} className="text-purple-600" />
+                    <h4 className="font-bold text-purple-900">Старший Администратор</h4>
+                  </div>
+                  <p className="text-sm text-purple-700">✓ Управление пользователями • ✓ Награды • ✓ Новости • ✓ Статистика</p>
+                </div>
+                
+                <div className="p-3 border-2 border-blue-200 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="Shield" size={20} className="text-blue-600" />
+                    <h4 className="font-bold text-blue-900">Средний Администратор</h4>
+                  </div>
+                  <p className="text-sm text-blue-700">✓ Награды • ✓ Новости • ✓ Статистика • ✓ Редактирование контента</p>
+                </div>
+                
+                <div className="p-3 border-2 border-green-200 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="ShieldAlert" size={20} className="text-green-600" />
+                    <h4 className="font-bold text-green-900">Младший Администратор</h4>
+                  </div>
+                  <p className="text-sm text-green-700">✓ Новости • ✓ Статистика • ✓ Базовый доступ</p>
+                </div>
+              </div>
+            </div>
+
+            <Separator className="my-6" />
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-heritage-brown">Текущие администраторы ({allAdmins.length}):</h3>
+              {allAdmins.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Icon name="Shield" size={48} className="mx-auto mb-4 opacity-30" />
+                  <p>Нет администраторов</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {allAdmins.map((admin) => (
+                    <div
+                      key={admin.username}
+                      className={`p-4 border-2 rounded-lg bg-gradient-to-r ${getRankColor(admin.rank)}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                            <Icon name="User" size={24} className="text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white text-lg">{admin.username}</h4>
+                            <p className="text-white/90 text-sm">{getRankLabel(admin.rank)}</p>
+                          </div>
+                        </div>
+                        
+                        {admin.rank !== 'super_admin' && (
+                          <div className="flex items-center gap-2">
+                            <Select
+                              value={admin.rank || ''}
+                              onValueChange={(value) => handleSetAdminRank(admin.username, value as AdminRank)}
+                            >
+                              <SelectTrigger className="w-48 bg-white">
+                                <SelectValue placeholder="Выберите ранг" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="senior_admin">Старший Администратор</SelectItem>
+                                <SelectItem value="middle_admin">Средний Администратор</SelectItem>
+                                <SelectItem value="junior_admin">Младший Администратор</SelectItem>
+                                <SelectItem value="null">Снять ранг</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                        
+                        {admin.rank === 'super_admin' && (
+                          <Badge className="bg-white/20 text-white border-white/40">
+                            Не изменяется
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Separator className="my-6" />
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-heritage-brown">Назначить нового администратора:</h3>
+              <div className="flex gap-3">
+                <select
+                  className="flex-1 p-2 border border-heritage-brown/20 rounded-md bg-white"
+                  id="new-admin-select"
+                  onChange={(e) => {
+                    const username = e.target.value
+                    const rankSelect = document.getElementById('new-admin-rank') as HTMLSelectElement
+                    if (username && rankSelect && rankSelect.value) {
+                      handleSetAdminRank(username, rankSelect.value as AdminRank)
+                      e.target.value = ''
+                      rankSelect.value = ''
+                    }
+                  }}
+                >
+                  <option value="">-- Выберите пользователя --</option>
+                  {users
+                    .filter(u => !allAdmins.find(a => a.username === u.username))
+                    .map(user => (
+                      <option key={user.id} value={user.username}>
+                        {user.username}
+                      </option>
+                    ))}
+                </select>
+                
+                <select
+                  id="new-admin-rank"
+                  className="w-56 p-2 border border-heritage-brown/20 rounded-md bg-white"
+                >
+                  <option value="">-- Выберите ранг --</option>
+                  <option value="senior_admin">Старший Администратор</option>
+                  <option value="middle_admin">Средний Администратор</option>
+                  <option value="junior_admin">Младший Администратор</option>
+                </select>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Главные администраторы (Админ, Володя) имеют постоянные полные права
+              </p>
+            </div>
           </CardContent>
         </Card>
       )}

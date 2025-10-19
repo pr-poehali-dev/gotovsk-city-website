@@ -7,6 +7,7 @@ import Icon from '@/components/ui/icon'
 import { sections } from './data'
 import { getLizcoins } from '@/utils/lizcoins'
 import { getCurrentUser } from '@/utils/auth'
+import { isAdmin } from '@/utils/adminRanks'
 import { AuthModal } from './AuthModal'
 import AchievementNotification from './webapp/AchievementNotification'
 import MusicPlayer from './webapp/MusicPlayer'
@@ -114,7 +115,7 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
               <CardContent className="p-3">
                 <nav className="space-y-1">
                   {sections.map((section) => {
-                    if (section.id === 'admin' && (!user || (user.username !== 'Админ' && user.username !== 'Володя'))) {
+                    if (section.id === 'admin' && (!user || !isAdmin(user.username))) {
                       return null
                     }
                     return (
