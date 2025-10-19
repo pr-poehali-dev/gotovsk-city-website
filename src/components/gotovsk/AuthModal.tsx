@@ -81,17 +81,15 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'register' && (
-            <div className="space-y-2">
-              <Label htmlFor="username">Имя пользователя</Label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Иван Петров"
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="username">{mode === 'register' ? 'Имя пользователя' : 'Имя пользователя или Email'}</Label>
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder={mode === 'register' ? 'Иван Петров' : 'Введите имя или email'}
+            />
+          </div>
 
           {mode === 'register' && (
             <div className="space-y-2">
