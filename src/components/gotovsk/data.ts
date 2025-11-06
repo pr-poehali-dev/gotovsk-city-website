@@ -8,6 +8,7 @@ export const sections = [
   { id: 'games', label: 'Игры', icon: 'Gamepad2' },
   { id: 'achievements', label: 'Достижения', icon: 'Trophy' },
   { id: 'gifts', label: 'Магазин подарков', icon: 'Gift' },
+  { id: 'inventory', label: 'Инвентарь', icon: 'Package' },
   { id: 'leaderboard', label: 'Таблица лидеров', icon: 'Medal' },
   { id: 'map', label: 'Карта', icon: 'Map' },
   { id: 'profile', label: 'Профиль', icon: 'User' },
@@ -123,5 +124,44 @@ export const gifts = [
     limited: true,
     remaining: 5,
     total: 5
+  }
+]
+
+export const boxes = [
+  {
+    id: 'bronze-box',
+    name: 'Бронзовый ящик',
+    price: 100,
+    description: 'Содержит случайные предметы низкой редкости',
+    icon: 'Package',
+    rarity: 'common',
+    vipOnly: true
+  },
+  {
+    id: 'silver-box',
+    name: 'Серебряный ящик',
+    price: 250,
+    description: 'Содержит случайные предметы средней редкости',
+    icon: 'Package',
+    rarity: 'rare',
+    vipOnly: true
+  },
+  {
+    id: 'gold-box',
+    name: 'Золотой ящик',
+    price: 500,
+    description: 'Содержит случайные предметы высокой редкости',
+    icon: 'Package',
+    rarity: 'epic',
+    vipOnly: true
+  },
+  {
+    id: 'elite-box',
+    name: 'Элитный ящик',
+    price: 1000,
+    description: 'Содержит эксклюзивные предметы высочайшей редкости',
+    icon: 'Sparkles',
+    rarity: 'legendary',
+    vipOnly: true
   }
 ]

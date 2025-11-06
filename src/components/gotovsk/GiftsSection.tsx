@@ -5,10 +5,12 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import Icon from '@/components/ui/icon'
 import CrystalAnimation from '@/components/ui/crystal-animation'
-import { gifts } from './data'
+import { gifts, boxes } from './data'
 import { getCurrentUser, updateUserLizcoins } from '@/utils/auth'
 import { getLizcoins } from '@/utils/lizcoins'
 import { getKrestcoins, hasVIPStatus, getVIPExpiry, activateVIP, renewVIP, formatVIPExpiry, hasVIPEliteStatus, getVIPEliteExpiry, activateVIPElite, renewVIPElite } from '@/utils/krestcoins'
+import { addToInventory } from '@/utils/inventory'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function GiftsSection() {
   const [user, setUser] = useState(getCurrentUser())
@@ -37,6 +39,7 @@ export function GiftsSection() {
     const saved = localStorage.getItem('customGifts')
     return saved ? JSON.parse(saved) : []
   })
+  const [activeTab, setActiveTab] = useState('gifts')
 
   useEffect(() => {
     const currentUser = getCurrentUser()
@@ -134,6 +137,14 @@ export function GiftsSection() {
     
     localStorage.setItem('purchasedGifts', JSON.stringify(newPurchasedGifts))
     
+    addToInventory({
+      id: gift.id,
+      type: 'gift',
+      name: gift.name,
+      description: gift.description,
+      icon: gift.icon
+    })
+    
     setTimeout(() => setMessage(''), 5000)
   }
 
@@ -144,6 +155,76 @@ export function GiftsSection() {
       return { canPurchase: remaining > 0, remaining }
     }
     return { canPurchase: true, remaining: null }
+  }
+
+  const handleBoxPurchase = (box: typeof boxes[0]) => {
+    if (!user) {
+      setMessage('Войдите в аккаунт, чтобы покупать ящики!')
+      setTimeout(() => setMessage(''), 3000)
+      return
+    }
+
+    if (!isVIP && !isVIPElite) {
+      setMessage('Ящики доступны только VIP пользователям!')
+      setTimeout(() => setMessage(''), 3000)
+      return
+    }
+
+    if (lizcoins < box.price) {
+      setMessage('Недостаточно лизкоинов для покупки!')
+      setTimeout(() => setMessage(''), 3000)
+      return
+    }
+
+    const newLizcoins = lizcoins - box.price
+    
+    setLizcoins(newLizcoins)
+    updateUserLizcoins(newLizcoins)
+    
+    const transaction = {
+      userId: user.id,
+      username: user.username,
+      amount: -box.price,
+      reason: `Покупка: ${box.name}`,
+      timestamp: new Date().toISOString(),
+      balanceAfter: newLizcoins
+    }
+    
+    const allTransactions = JSON.parse(localStorage.getItem('lizcoinsTransactions') || '[]')
+    allTransactions.push(transaction)
+    localStorage.setItem('lizcoinsTransactions', JSON.stringify(allTransactions))
+    
+    addToInventory({
+      id: box.id,
+      type: 'box',
+      name: box.name,
+      description: box.description,
+      icon: box.icon,
+      metadata: { rarity: box.rarity }
+    })
+    
+    setMessage(`Вы успешно приобрели: ${box.name}!`)
+    setTimeout(() => setMessage(''), 5000)
+  }
+
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'from-gray-400 to-gray-600'
+      case 'rare': return 'from-blue-400 to-blue-600'
+      case 'epic': return 'from-purple-400 to-purple-600'
+      case 'legendary': return 'from-yellow-400 to-orange-600'
+      default: return 'from-gray-400 to-gray-600'
+    }
+  }
+
+  const getRarityLabel = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'Обычный'
+      case 'rare': return 'Редкий'
+      case 'epic': return 'Эпический'
+      case 'legendary': return 'Легендарный'
+      default: return 'Обычный'
+    }
   }
 
   if (!user) {
@@ -541,67 +622,150 @@ export function GiftsSection() {
         </Alert>
       )}
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {[...gifts, ...customGifts].map((gift) => {
-          const status = getGiftStatus(gift)
-          const canAfford = lizcoins >= gift.price
-          const canPurchase = status.canPurchase && canAfford
-          
-          return (
-            <Card key={gift.id} className={`border-heritage-brown/20 transition-all hover:shadow-lg ${
-              !canPurchase ? 'opacity-60' : ''
-            }`}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-heritage-brown/10 rounded-lg flex items-center justify-center">
-                      <Icon name={gift.icon as any} className="text-heritage-brown" size={24} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-heritage-brown">{gift.name}</CardTitle>
-                      {gift.limited && (
-                        <Badge variant="secondary" className="mt-1">
-                          Лимитированный: осталось {status.remaining}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="flex items-center gap-1">
-                      <Icon name="Coins" className="text-yellow-600" size={16} />
-                      <span className="font-bold text-heritage-brown">{gift.price}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="gifts" className="flex items-center gap-2">
+            <Icon name="Gift" size={18} />
+            Подарки
+          </TabsTrigger>
+          <TabsTrigger value="boxes" className="flex items-center gap-2">
+            <Icon name="Package" size={18} />
+            Ящики
+            {(isVIP || isVIPElite) && <Badge className="ml-1 bg-yellow-500 text-yellow-950">VIP</Badge>}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="gifts" className="space-y-4 mt-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
+            {[...gifts, ...customGifts].map((gift) => {
+              const status = getGiftStatus(gift)
+              const canAfford = lizcoins >= gift.price
+              const canPurchase = status.canPurchase && canAfford
               
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground leading-relaxed">
-                  {gift.description}
-                </p>
+              return (
+                <Card key={gift.id} className={`border-heritage-brown/20 transition-all hover:shadow-lg ${
+                  !canPurchase ? 'opacity-60' : ''
+                }`}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-heritage-brown/10 rounded-lg flex items-center justify-center">
+                          <Icon name={gift.icon as any} className="text-heritage-brown" size={24} />
+                        </div>
+                        <div>
+                          <CardTitle className="text-heritage-brown">{gift.name}</CardTitle>
+                          {gift.limited && (
+                            <Badge variant="secondary" className="mt-1">
+                              Лимитированный: осталось {status.remaining}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="flex items-center gap-1">
+                          <Icon name="Coins" className="text-yellow-600" size={16} />
+                          <span className="font-bold text-heritage-brown">{gift.price}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4">
+                    <p className="text-muted-foreground leading-relaxed">
+                      {gift.description}
+                    </p>
+                    
+                    <Button
+                      onClick={() => handlePurchase(gift)}
+                      disabled={!canPurchase}
+                      className={`w-full ${
+                        canPurchase 
+                          ? 'bg-heritage-brown hover:bg-heritage-brown/90 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      {!canAfford 
+                        ? `Недостаточно лизкоинов (нужно ${gift.price - lizcoins} ЛК)`
+                        : !status.canPurchase 
+                          ? 'Недоступно'
+                          : 'Получить подарок'
+                      }
+                    </Button>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="boxes" className="space-y-4 mt-6">
+          {!isVIP && !isVIPElite ? (
+            <Alert className="border-yellow-400 bg-yellow-50">
+              <Icon name="Lock" size={16} className="text-yellow-600" />
+              <AlertDescription className="text-yellow-900">
+                Ящики доступны только для VIP пользователей! Приобретите VIP статус в разделе подписок.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
+              {boxes.map((box) => {
+                const canAfford = lizcoins >= box.price
                 
-                <Button
-                  onClick={() => handlePurchase(gift)}
-                  disabled={!canPurchase}
-                  className={`w-full ${
-                    canPurchase 
-                      ? 'bg-heritage-brown hover:bg-heritage-brown/90 text-white'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  {!canAfford 
-                    ? `Недостаточно лизкоинов (нужно ${gift.price - lizcoins} ЛК)`
-                    : !status.canPurchase 
-                      ? 'Недоступно'
-                      : 'Получить подарок'
-                  }
-                </Button>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+                return (
+                  <Card key={box.id} className={`border-2 transition-all hover:shadow-xl ${
+                    !canAfford ? 'opacity-60' : ''
+                  }`}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 bg-gradient-to-br ${getRarityColor(box.rarity)} rounded-lg flex items-center justify-center shadow-lg`}>
+                            <Icon name={box.icon as any} className="text-white" size={24} />
+                          </div>
+                          <div>
+                            <CardTitle className="text-heritage-brown">{box.name}</CardTitle>
+                            <Badge className={`mt-1 bg-gradient-to-r ${getRarityColor(box.rarity)} text-white border-0`}>
+                              {getRarityLabel(box.rarity)}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="text-right">
+                          <div className="flex items-center gap-1">
+                            <Icon name="Coins" className="text-yellow-600" size={16} />
+                            <span className="font-bold text-heritage-brown">{box.price}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-4">
+                      <p className="text-muted-foreground leading-relaxed">
+                        {box.description}
+                      </p>
+                      
+                      <Button
+                        onClick={() => handleBoxPurchase(box)}
+                        disabled={!canAfford}
+                        className={`w-full ${
+                          canAfford 
+                            ? `bg-gradient-to-r ${getRarityColor(box.rarity)} hover:opacity-90 text-white`
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        {!canAfford 
+                          ? `Недостаточно лизкоинов (нужно ${box.price - lizcoins} ЛК)`
+                          : 'Купить ящик'
+                        }
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

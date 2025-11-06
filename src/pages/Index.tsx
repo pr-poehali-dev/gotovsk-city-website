@@ -9,6 +9,7 @@ import { HistorySection } from '@/components/gotovsk/HistorySection'
 import { NewsSection } from '@/components/gotovsk/NewsSection'
 import { MapSection } from '@/components/gotovsk/MapSection'
 import { GiftsSection } from '@/components/gotovsk/GiftsSection'
+import { InventorySection } from '@/components/gotovsk/InventorySection'
 import { ProfileSection } from '@/components/gotovsk/ProfileSection'
 import { LeaderboardSection } from '@/components/gotovsk/LeaderboardSection'
 import { AdminPanel } from '@/components/gotovsk/AdminPanel'
@@ -64,6 +65,8 @@ function Index() {
         return <AchievementsSection />
       case 'gifts':
         return <GiftsSection />
+      case 'inventory':
+        return <InventorySection />
       case 'leaderboard':
         return <LeaderboardSection />
       case 'admin':
