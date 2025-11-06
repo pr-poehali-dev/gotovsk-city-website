@@ -50,7 +50,7 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
     }
   }, [])
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent relative">
       {/* Header */}
       <header className="border-b border-heritage-brown/20 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -108,7 +108,7 @@ export function Layout({ children, activeSection, onSectionChange, earnedMessage
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Navigation */}
           <aside className="lg:w-64 shrink-0">
-            <Card className="border-heritage-brown/20 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
+            <Card className="border-heritage-brown/20 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto bg-white/90 backdrop-blur-md">
               <CardHeader className="sticky top-0 bg-white/95 backdrop-blur-sm z-10">
                 <CardTitle className="text-heritage-brown">Навигация</CardTitle>
               </CardHeader>

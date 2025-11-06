@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Layout } from '@/components/gotovsk/Layout'
+import { SectionBackground } from '@/components/gotovsk/SectionBackground'
 import { trackSectionVisit } from '@/utils/lizcoins'
 import { MainSection } from '@/components/gotovsk/MainSection'
 import { DistrictsSection } from '@/components/gotovsk/DistrictsSection'
@@ -82,6 +83,7 @@ function Index() {
 
   return (
     <>
+      <SectionBackground section={activeSection} />
       <Layout activeSection={activeSection} onSectionChange={setActiveSection}>
         {renderContent()}
       </Layout>

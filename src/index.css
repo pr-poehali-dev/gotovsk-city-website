@@ -349,6 +349,148 @@
     }
   }
 
+  .animate-float-0 {
+    animation: float0 6s ease-in-out infinite;
+  }
+
+  .animate-float-1 {
+    animation: float1 7s ease-in-out infinite;
+  }
+
+  .animate-float-2 {
+    animation: float2 8s ease-in-out infinite;
+  }
+
+  .animate-float-3 {
+    animation: float3 6.5s ease-in-out infinite;
+  }
+
+  .animate-float-4 {
+    animation: float4 7.5s ease-in-out infinite;
+  }
+
+  @keyframes float0 {
+    0%,
+    100% {
+      transform: translateY(0px) translateX(0px);
+    }
+    25% {
+      transform: translateY(-30px) translateX(20px);
+    }
+    50% {
+      transform: translateY(-60px) translateX(-10px);
+    }
+    75% {
+      transform: translateY(-30px) translateX(-20px);
+    }
+  }
+
+  @keyframes float1 {
+    0%,
+    100% {
+      transform: translateY(0px) translateX(0px);
+    }
+    25% {
+      transform: translateY(-40px) translateX(-20px);
+    }
+    50% {
+      transform: translateY(-70px) translateX(15px);
+    }
+    75% {
+      transform: translateY(-35px) translateX(25px);
+    }
+  }
+
+  @keyframes float2 {
+    0%,
+    100% {
+      transform: translateY(0px) translateX(0px);
+    }
+    25% {
+      transform: translateY(-50px) translateX(10px);
+    }
+    50% {
+      transform: translateY(-80px) translateX(-20px);
+    }
+    75% {
+      transform: translateY(-40px) translateX(15px);
+    }
+  }
+
+  @keyframes float3 {
+    0%,
+    100% {
+      transform: translateY(0px) translateX(0px);
+    }
+    25% {
+      transform: translateY(-45px) translateX(-15px);
+    }
+    50% {
+      transform: translateY(-75px) translateX(20px);
+    }
+    75% {
+      transform: translateY(-38px) translateX(-25px);
+    }
+  }
+
+  @keyframes float4 {
+    0%,
+    100% {
+      transform: translateY(0px) translateX(0px);
+    }
+    25% {
+      transform: translateY(-35px) translateX(25px);
+    }
+    50% {
+      transform: translateY(-65px) translateX(-15px);
+    }
+    75% {
+      transform: translateY(-32px) translateX(18px);
+    }
+  }
+
+  .animate-train {
+    animation: trainMove 8s linear infinite;
+  }
+
+  @keyframes trainMove {
+    0% {
+      transform: translateX(-100vw);
+    }
+    100% {
+      transform: translateX(120vw);
+    }
+  }
+
+  .animate-spin-slow {
+    animation: spinSlow 8s linear infinite;
+  }
+
+  @keyframes spinSlow {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulseSlow 4s ease-in-out infinite;
+  }
+
+  @keyframes pulseSlow {
+    0%,
+    100% {
+      opacity: 0.15;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.3;
+      transform: scale(1.1);
+    }
+  }
+
   .shimmer {
     background: linear-gradient(
       90deg,
